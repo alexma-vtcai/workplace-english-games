@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>HKCV Mall - AI Writing Coach (Final)</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* CSS Styles */
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; color: #1c1e21; }
+        .container { display: flex; flex-direction: row; width: 1100px; max-width: 95%; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; height: 85vh; }
+        
+        /* Left Panel */
+        .left-panel { width: 35%; background-color: #f7f9fc; padding: 30px; border-right: 1px solid #e1e4e8; overflow-y: auto; display: flex; flex-direction: column; }
+        select { padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 20px; width: 100%; cursor: pointer; background: white; font-weight: bold; color: #333; }
+        .scenario-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .email-header { font-size: 12px; color: #666; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .email-body { font-size: 14px; line-height: 1.6; color: #333; white-space: pre-wrap; font-family: 'Georgia', serif; }
+        .tips-box { background: #e7f3ff; padding: 15px; border-radius: 10px; font-size: 0.9em; color: #0056b3; border-left: 4px solid #0084ff; }
+        .tips-box ul { padding-left: 20px; margin: 5px 0 0; }
+        
+        /* Right Panel */
+        .right-panel { width: 65%; display: flex; flex-direction: column; position: relative; }
+        .editor-area { flex: 1; padding: 30px; display: flex; flex-direction: column; }
+        textarea { flex: 1; width: 100%; border: 2px solid #e1e4e8; border-radius: 12px; padding: 20px; font-family: inherit; font-size: 16px; line-height: 1.5; resize: none; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
+        textarea:focus { border-color: #0084ff; }
+        
+        /* Buttons */
+        .btn-area { padding: 20px 30px; border-top: 1px solid #eee; background: white; display: flex; justify-content: flex-end; align-items: center; }
+        .send-btn { background-color: #0084ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 15px rgba(0,132,255,0.3); display: flex; align-items: center; gap: 8px; }
+        .send-btn:hover { background-color: #006acc; transform: translateY(-1px); }
+        .send-btn:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        /* Feedback Overlay */
+        .feedback-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); z-index: 10; padding: 40px; box-sizing: border-box; overflow-y: auto; display: none; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; color: #555; transition: 0.2s; }
+        .close-btn:hover { background: #ddd; }
+        
+        /* Markdown Output Styles */
+        .ai-response h2 { color: #0084ff; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
+        .ai-response h3 { margin-top: 25px; color: #444; border-left: 4px solid #0084ff; padding-left: 10px; }
+        .ai-response ul { padding-left: 20px; line-height: 1.6; color: #444; }
+        .ai-response li { margin-bottom: 8px; }
+        .ai-response p { line-height: 1.6; color: #333; }
+        .ai-response strong { color: #000; }
+
+        /* Loading Spinner */
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #0084ff; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin-right: 15px; display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) { .container { flex-direction: column; height: 95vh; } .left-panel { width: 100%; height: 40%; padding: 20px; } .right-panel { width: 100%; height: 60%; } textarea { font-size: 14px; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="left-panel">
+        <label style="font-size: 12px; font-weight: bold; color: #666; margin-bottom: 5px;">SELECT A TASK:</label>
+        <select id="scenarioSelector" onchange="updateScenario()">
+            <option value="0">Task 1: Late Delivery (Complaint)</option>
+            <option value="1">Task 2: Product Enquiry (Features)</option>
+            <option value="2">Task 3: Refund Request (Policy)</option>
+        </select>
+
+        <h2 id="taskTitle" style="margin-top:0;">Reply to Complaint</h2>
+        
+        <div class="scenario-card">
+            <div class="email-header" id="emailFrom">From: Jason (Angry Customer)</div>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+            <div class="email-body" id="emailBody">Hi, I ordered the Pina V34 hairdryer...</div>
+        </div>
+
+        <div class="tips-box">
+            <strong>Teacher's Hints:</strong>
+            <ul id="hintsList">
+                <li>Apologize sincerely</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <div class="editor-area">
+            <h3 style="margin-top:0;">Your Reply:</h3>
+            <textarea id="studentInput" placeholder="Dear Customer,&#10;&#10;I am writing to..."></textarea>
+        </div>
+
+        <div class="btn-area">
+            <div class="loading-spinner" id="spinner"></div>
+            <button class="send-btn" id="sendBtn" onclick="analyzeText()">Submit & Check ✨</button>
+        </div>
+
+        <div class="feedback-overlay" id="feedbackOverlay">
+            <button class="close-btn" onclick="closeFeedback()">×</button>
+            <div class="feedback-content">
+                <div id="aiOutput" class="ai-response"></div>
+                <button class="send-btn" onclick="closeFeedback()" style="margin-top: 30px; width: 100%; justify-content: center;">Keep Editing / Try Again</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ======================================================
+    // ⚠️ 老師請在此填入 API Key (保留引號) ⚠️
+    const API_KEY = "AIzaSyDxdQfDZzW04AgN7L2nigFnXdsCGc1l7Rc"; 
+    // ======================================================
+
+    const scenarios = [
+        {
+            title: "Reply to Complaint (Unit 2)",
+            from: "From: Jason (Angry Customer)",
+            body: "Hi, I ordered the Pina V34 hairdryer TWO weeks ago! It still hasn't arrived.\nI need it for my trip this Friday. This is unacceptable! 😡",
+            hints: [
+                "Apologize sincerely (Don't say 'Calm down')",
+                "Use softeners ('We regret to inform you...')",
+                "Offer a solution (e.g. express shipping)"
+            ],
+            aiPromptContext: "The customer complained about late delivery of a hairdryer. Student Task: Apologize, explain the delay (e.g. system error), and offer a solution. Focus on Politeness and Softeners."
+        },
+        {
+            title: "Product Enquiry (Unit 1)",
+            from: "From: Sarah (Potential Buyer)",
+            body: "Hi! I'm interested in the Bluetooth Speaker.\nIs it waterproof? Can I use it for swimming?\nAlso, does it come with a warranty?",
+            hints: [
+                "Greet politely (Semi-formal)",
+                "Explain 'Water-resistant' vs 'Waterproof'",
+                "Mention 1-year warranty (Use Passive Voice)"
+            ],
+            aiPromptContext: "Customer asks if speaker is waterproof for swimming. Student Task: Clarify it is water-resistant (light rain OK) but NOT for swimming. Mention 1-year warranty is included."
+        },
+        {
+            title: "Refund Request (Unit 2)",
+            from: "From: Mike",
+            body: "I bought a shirt yesterday but I don't like the color.\nI cut off the tag already.\nCan I get a full refund?",
+            hints: [
+                "Refuse politely (Use 'I am afraid...')",
+                "Explain policy (No refund if tag removed)",
+                "Offer an alternative (e.g. exchange)"
+            ],
+            aiPromptContext: "Customer wants refund but removed tag. Student Task: Refuse refund politely citing company policy, but offer an exchange. Tone should be firm but polite."
+        }
+    ];
+
+    let currentScenario = 0;
+
+    function updateScenario() {
+        const index = document.getElementById('scenarioSelector').value;
+        currentScenario = index;
+        const data = scenarios[index];
+
+        document.getElementById('taskTitle').innerText = data.title;
+        document.getElementById('emailFrom').innerText = data.from;
+        document.getElementById('emailBody').innerText = data.body;
+        
+        const hintsUl = document.getElementById('hintsList');
+        hintsUl.innerHTML = "";
+        data.hints.forEach(hint => {
+            const li = document.createElement('li');
+            li.innerText = hint;
+            hintsUl.appendChild(li);
+        });
+    }
+
+    async function analyzeText() {
+        const text = document.getElementById('studentInput').value.trim();
+        const btn = document.getElementById('sendBtn');
+        const spinner = document.getElementById('spinner');
+
+        // 1. Basic Validation
+        if (text.length < 5) { alert("Please write a bit more content before submitting!"); return; }
+        if (!API_KEY || API_KEY.includes("PASTE") || API_KEY.length < 10) { 
+            alert("Teacher Alert: API Key is missing or invalid in the code."); return; 
+        }
+
+        // 2. UI Loading State
+        btn.disabled = true; 
+        btn.innerText = "Marking..."; 
+        spinner.style.display = "block";
+
+        const scenarioData = scenarios[currentScenario];
+
+        // 3. The Prompt (Marking Scheme)
+        const prompt = `
+            Act as a supportive Vocational English Teacher.
+            Scenario: ${scenarioData.aiPromptContext}
+            Student's Draft: "${text}"
+            
+            Please grade this email based on Workplace English standards.
+            Provide feedback in Markdown format:
+            1. **Score:** (Give a score out of 10)
+            2. **Good Points:** (What did they do well?)
+            3. **Areas for Improvement:** (Focus on Tone, Grammar, and Structure)
+            4. **Better Version:** (Rewrite the email professionally)
+        `;
+
+        try {
+            // 4. API Call (Using the standard model name)
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    // 🚨 SAFETY SETTINGS: Prevent AI from blocking angry customer context
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+                    ]
+                })
+            });
+
+            const data = await response.json();
+
+            // 5. Error Handling (Detailed)
+            if (data.error) {
+                console.error("Google API Error:", data.error);
+                if (data.error.code === 403) {
+                    throw new Error("⛔ Access Denied (403). Please check your Google Cloud 'Website Restrictions'. Ensure your GitHub URL ends with /*");
+                } else if (data.error.code === 404) {
+                    throw new Error("🔍 Model Not Found (404). API service might still be initializing. Wait 2 mins and try again.");
+                } else {
+                    throw new Error(`API Error: ${data.error.message}`);
+                }
+            }
+
+            if (!data.candidates || !data.candidates[0]) {
+                throw new Error("⚠️ AI blocked the response. (Safety Filter triggered). Try modifying the prompt or input.");
+            }
+
+            // 6. Success Display
+            const output = data.candidates[0].content.parts[0].text;
+            document.getElementById('aiOutput').innerHTML = marked.parse(output);
+            document.getElementById('feedbackOverlay').style.display = "block";
+
+        } catch (e) {
+            alert("Oops! Something went wrong:\n\n" + e.message);
+        } finally {
+            // Reset UI
+            btn.disabled = false; 
+            btn.innerText = "Submit & Check ✨"; 
+            spinner.style.display = "none";
+        }
+    }
+
+    function closeFeedback() {
+        document.getElementById('feedbackOverlay').style.display = "none";
+    }
+
+    // Initialize
+    updateScenario();
+
+</script>
+
+</body>
+</html>
