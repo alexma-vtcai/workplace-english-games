@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HKCV Mall - Workplace English Challenge</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 400px;
+            height: 90vh;
+            background-color: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 8px solid #333;
+            position: relative;
+        }
+
+        .header {
+            background-color: #0084ff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 2;
+        }
+
+        .progress-bar-container {
+            background: #006acc;
+            height: 6px;
+            width: 100%;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #00ff88;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #e4e6eb;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            animation: popIn 0.3s ease-out;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.customer {
+            background-color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: #1c1e21;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .message.you {
+            background-color: #0084ff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .controls {
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #ddd;
+            z-index: 2;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background-color: #f0f2f5;
+            border: 2px solid #e4e6eb;
+            border-radius: 10px;
+            text-align: left;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #050505;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background-color: #e7f3ff;
+            border-color: #0084ff;
+        }
+
+        .option-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            background-color: #eee;
+        }
+
+        .feedback-overlay {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 15px 25px;
+            border-radius: 30px;
+            text-align: center;
+            z-index: 10;
+            display: none;
+            font-weight: bold;
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            animation: fadeInOut 1.2s ease-in-out;
+            color: white;
+            width: 70%;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -40%); }
+            15% { opacity: 1; transform: translate(-50%, -50%); }
+            85% { opacity: 1; transform: translate(-50%, -50%); }
+            100% { opacity: 0; transform: translate(-50%, -60%); }
+        }
+
+        .result-screen {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            z-index: 20;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .result-score {
+            font-size: 48px;
+            font-weight: bold;
+            color: #0084ff;
+            margin: 20px 0;
+        }
+
+        .result-text {
+            font-size: 16px;
+            color: #65676b;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .retry-btn {
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,132,255,0.3);
+            transition: transform 0.2s;
+        }
+        
+        /* Teacher Note Badge */
+        .badge {
+            display: inline-block;
+            background: #eee;
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="phone-container">
+    <div class="header">
+        <div>HKCV Mall Inbox 🛍️</div>
+        <div style="font-size: 0.8em;" id="levelIndicator">1/10</div>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+        <div class="message customer">System: Welcome back, Amy.<br>Generating 10 random customer enquiries...</div>
+    </div>
+
+    <div class="controls" id="controls">
+        <p style="margin: 0 0 10px; font-size: 0.8rem; color: #65676b; font-weight: bold;">Select the best reply:</p>
+        <div id="options-container">
+            </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback"></div>
+
+    <div class="result-screen" id="resultScreen">
+        <h1 id="resultTitle">Training Complete</h1>
+        <div class="result-score" id="finalScore">0/10</div>
+        <p class="result-text" id="resultComment">Loading...</p>
+        <button class="retry-btn" onclick="location.reload()">New Questions 🔄</button>
+    </div>
+
+</div>
+
+<script>
+    /* TEACHER NOTE: 
+       Options design philosophy:
+       - 1 Correct Answer (Professional, polite, grammatically correct)
+       - 1 Distractor A (Too formal, robotic, or slight grammar error)
+       - 1 Distractor B (Too casual, blunt, or Chinglish)
+    */
+    const questionPool = [
+        // --- GREETING & FORMALITY ---
+        {
+            customerMsg: "Hi! I want to ask about the Smart Watch.",
+            options: [
+                "Dear Sir/Madam, We acknowledge your request.", // Too formal
+                "What do you want to know?", // Too blunt
+                "Hi there! Sure, how can I help you with the Smart Watch? 👋" // Correct
+            ],
+            correct: 2
+        },
+        {
+            customerMsg: "Hello HKCV Mall.",
+            options: [
+                "Who are you?", // Rude
+                "Hi! How may I assist you today? 😊", // Correct
+                "We are open." // Irrelevant
+            ],
+            correct: 1
+        },
+        // --- STOCK AVAILABILITY ---
+        {
+            customerMsg: "Is the Blue Yoga Mat in stock?",
+            options: [
+                "No stock.", // Too short
+                "Sorry, the blue one is sold out. Would you like the Purple one instead?", // Correct (Offers alternative)
+                "You can buy the Purple one." // Pushy
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Can I buy 50 units of the portable fan?",
+            options: [
+                "That is too many.", // Dismissive
+                "Please contact our wholesale department for bulk orders. 📦", // Correct
+                "We don't have enough." // Weak
+            ],
+            correct: 1
+        },
+        // --- PRODUCT FEATURES (ADJECTIVES) ---
+        {
+            customerMsg: "Is this toaster safe for kids?",
+            options: [
+                "Yes, it is child-proof and the outside stays cool. 🍞", // Correct
+                "Don't let them touch it.", // Warning, not sales
+                "It is very hot." // Negative selling
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Is the blender heavy?",
+            options: [
+                "It is lightweight and easy to store.", // Correct
+                "It is not heavy.", // Simple
+                "The weight is acceptable." // Vague
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Does the skincare set expire soon?",
+            options: [
+                "No, it is long-lasting.", // Wrong adjective (usually for battery/durability)
+                "It has a shelf life of 2 years. 🧴", // Correct
+                "Maybe next year." // Unprofessional guessing
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Is this keyboard wireless?",
+            options: [
+                "Yes, no wire.", // Chinglish/Grammar
+                "Yes, it connects via Bluetooth for a hassle-free experience. ⌨️", // Correct
+                "It is wire-free." // Uncommon phrasing
+            ],
+            correct: 1
+        },
+        // --- LOCATION & PREPOSITIONS ---
+        {
+            customerMsg: "Where is your shop?",
+            options: [
+                "We are located at 15 Nathan Road.", // Correct (Specific address = at)
+                "We are located on 15 Nathan Road.", // Wrong preposition
+                "We are in 15 Nathan Road." // Wrong preposition
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Which district are you in?",
+            options: [
+                "We are located at Mong Kok.", // Wrong preposition (Area = in)
+                "We are located in Mong Kok.", // Correct
+                "Go to Mong Kok." // Rude
+            ],
+            correct: 1
+        },
+        // --- NEGATIVE NEWS & SOFTENERS ---
+        {
+            customerMsg: "Can you give me a free gift?",
+            options: [
+                "No, we don't do that.", // Too direct
+                "I am afraid we do not have any free gifts at the moment. 🙏", // Correct (Softener)
+                "You need to pay for gifts." // Rude
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Can I return this used lipstick?",
+            options: [
+                "Unfortunately, for hygiene reasons, we cannot accept returns on used cosmetics.", // Correct
+                "No, you used it already.", // Accusatory
+                "We regret to reject your request." // Too formal/robotic
+            ],
+            correct: 0
+        },
+        // --- GRAMMAR (PASSIVE VOICE / COMPLEX SENTENCES) ---
+        {
+            customerMsg: "Do I get a warranty?",
+            options: [
+                "A 1-year warranty is included with your purchase. 🛡️", // Correct (Passive focus on warranty)
+                "We give you 1 year warranty.", // Active (Okay, but less pro)
+                "Warranty have 1 year." // Grammar error
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Why does the bag have this strap?",
+            options: [
+                "It is for carrying.", // Simple
+                "The strap is adjustable so that you can wear it comfortably.", // Correct (Complex sentence)
+                "Because to carry it." // Grammar error
+            ],
+            correct: 1
+        },
+        // --- ANGRY CUSTOMERS (TONE) ---
+        {
+            customerMsg: "The delivery is LATE! I am angry! 😡",
+            options: [
+                "Please calm down.", // Trigger phrase
+                "It is the courier's fault.", // Blaming
+                "I sincerely apologize for the delay. Let me track it for you. 🚚" // Correct
+            ],
+            correct: 2
+        },
+        {
+            customerMsg: "This product is broken!",
+            options: [
+                "You must have broken it.", // Accusatory
+                "Please send us a photo so we can assist you with a replacement. 📸", // Correct
+                "Buy a new one." // Rude
+            ],
+            correct: 1
+        },
+        // --- PAYMENT & HOURS ---
+        {
+            customerMsg: "Do you take credit cards?",
+            options: [
+                "Yes, give me your card number.", // Dangerous/Unsecure
+                "We accept Visa, Mastercard, and PayMe.", // Correct
+                "Cash only." // Unlikely for online shop
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Are you open now? It is midnight.",
+            options: [
+                "We are closed. Go to sleep.", // Rude
+                "Our business hours are 10am to 8pm. Please leave a message! 🌙", // Correct
+                "No one is here." // Unprofessional
+            ],
+            correct: 1
+        },
+        // --- NEW QUESTIONS (19-30) VARIETY ---
+        {
+            customerMsg: "How long does charging take for the earbuds?",
+            options: [
+                "It takes about 2 hours to fully charge. 🔋", // Correct
+                "Wait 2 hours.", // Imperative
+                "Charging needs 2 hours." // Chinglish structure
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Is the Coffee Machine complicated to use?",
+            options: [
+                "Yes, it is very hard.", // Negative
+                "No, it features a user-friendly interface. ☕", // Correct (Vocab: User-friendly)
+                "It is easy." // Too simple
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Can I get a discount code?",
+            options: [
+                "Use code HKCV10 for 10% off your first order! 🎉", // Correct
+                "No discount for you.", // Rude
+                "We seldom give discounts." // Negative tone
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "The user manual is missing.",
+            options: [
+                "Check the box again.", // Bossy
+                "You can download the PDF version from our website. 📄", // Correct (Solution oriented)
+                "I will send it later." // Vague
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Is this backpack waterproof?",
+            options: [
+                "It is water-resistant, suitable for light rain. ☔", // Correct (Precise)
+                "Yes, water cannot go inside.", // Clumsy phrasing
+                "It is water-proof." // Technically often wrong usage vs resistant
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "How do I become a member?",
+            options: [
+                "You can register on our website for free. 💻", // Correct
+                "Join our club.", // Informal
+                "Give me your name." // Too direct
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "I want to complain about the staff.",
+            options: [
+                "Who?", // Too short
+                "We take this seriously. Please tell us more details.", // Correct
+                "Our staff is good." // Defensive
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Love your products! They are great.",
+            options: [
+                "I know.", // Arrogant
+                "Thank you for your support! We are glad you like them. ❤️", // Correct
+                "Buy more then." // Pushy
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "Do you ship to Macau?",
+            options: [
+                "Yes, we provide shipping to Macau via SF Express. 🚢", // Correct
+                "Yes, we send to Macau.", // A bit informal
+                "Macau can." // Chinglish
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Can I reserve this jacket?",
+            options: [
+                "We can hold it for you for 24 hours. 🧥", // Correct
+                "Don't buy it yet.", // Confusing
+                "Reservation is permitted." // Too formal
+            ],
+            correct: 0
+        },
+        {
+            customerMsg: "Is the material durable?",
+            options: [
+                "It is made of cheap plastic.", // Too honest/Negative
+                "Yes, it is made of high-quality, durable nylon.", // Correct
+                "It lasts long time." // Grammar (missing 'a')
+            ],
+            correct: 1
+        },
+        {
+            customerMsg: "My size is wrong. Can I exchange?",
+            options: [
+                "You bought the wrong size.", // Blaming
+                "Yes, exchanges are allowed within 7 days. 🔄", // Correct
+                "Change is okay." // Vague/Informal
+            ],
+            correct: 1
+        }
+    ];
+
+    // Game Variables
+    let gameQuestions = [];
+    let currentQIndex = 0;
+    let score = 0;
+    
+    // DOM Elements
+    const chatArea = document.getElementById('chatArea');
+    const optionsContainer = document.getElementById('options-container');
+    const feedbackOverlay = document.getElementById('feedback');
+    const levelIndicator = document.getElementById('levelIndicator');
+    const progressBar = document.getElementById('progressBar');
+    const resultScreen = document.getElementById('resultScreen');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalTitle = document.getElementById('resultTitle');
+    const finalComment = document.getElementById('resultComment');
+
+    // --- SHUFFLE FUNCTION ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initGame() {
+        // 1. Shuffle full pool
+        const shuffledPool = shuffleArray([...questionPool]);
+        // 2. Select first 10
+        gameQuestions = shuffledPool.slice(0, 10);
+        
+        currentQIndex = 0;
+        score = 0;
+        loadQuestion(0);
+    }
+
+    function loadQuestion(index) {
+        if (index >= gameQuestions.length) {
+            showResults();
+            return;
+        }
+
+        const q = gameQuestions[index];
+        levelIndicator.innerText = `${index + 1} / 10`;
+        progressBar.style.width = `${(index / 10) * 100}%`;
+
+        setTimeout(() => {
+            addMessage(q.customerMsg, 'customer');
+            generateButtons(q, index);
+        }, 400); 
+    }
+
+    function generateButtons(q, index) {
+        optionsContainer.innerHTML = '';
+        
+        // Randomize button order
+        let choices = q.options.map((text, i) => ({ text, originalIndex: i }));
+        choices = shuffleArray(choices);
+
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = choice.text;
+            btn.onclick = () => handleAnswer(index, choice.originalIndex, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function addMessage(text, type) {
+        const div = document.createElement('div');
+        div.className = `message ${type}`;
+        div.innerHTML = text;
+        chatArea.appendChild(div);
+        chatArea.scrollTop = chatArea.scrollHeight;
+    }
+
+    function handleAnswer(qIndex, choiceIndex, clickedBtn) {
+        const q = gameQuestions[qIndex];
+        const isCorrect = (choiceIndex === q.correct);
+
+        // Disable buttons
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => {
+            b.disabled = true;
+            // Highlight correct/wrong visually on buttons (optional polish)
+            if(b === clickedBtn) {
+                b.style.border = isCorrect ? '2px solid #00ff88' : '2px solid #ff4444';
+                b.style.backgroundColor = isCorrect ? '#eafff5' : '#ffeaea';
+            }
+        });
+
+        addMessage(q.options[choiceIndex], 'you');
+
+        if (isCorrect) {
+            score++;
+            showFeedback("Correct! ✅", true);
+        } else {
+            showFeedback("Needs Improvement ❌", false);
+        }
+
+        setTimeout(() => {
+            currentQIndex++;
+            loadQuestion(currentQIndex);
+        }, 1500);
+    }
+
+    function showFeedback(text, isGood) {
+        feedbackOverlay.innerText = text;
+        feedbackOverlay.style.display = 'block';
+        feedbackOverlay.style.background = isGood ? 'rgba(0,180,0,0.95)' : 'rgba(220,50,50,0.95)';
+        
+        setTimeout(() => {
+            feedbackOverlay.style.display = 'none';
+        }, 1200);
+    }
+
+    function showResults() {
+        document.querySelector('.header').style.display = 'none';
+        document.querySelector('.controls').style.display = 'none';
+        chatArea.style.display = 'none';
+        
+        resultScreen.style.display = 'flex';
+        finalScoreEl.innerText = `${score} / 10`;
+
+        if (score === 10) {
+            finalTitle.innerText = "Excellent! 🌟";
+            finalComment.innerText = "You have mastered workplace communication!";
+        } else if (score >= 7) {
+            finalTitle.innerText = "Good Job! 👍";
+            finalComment.innerText = "You handled most customers well. Watch out for tone and grammar.";
+        } else {
+            finalTitle.innerText = "Keep Practising 📚";
+            finalComment.innerText = "Try to be more polite and professional in your replies.";
+        }
+    }
+
+    initGame();
+
+</script>
+
+</body>
+</html>
