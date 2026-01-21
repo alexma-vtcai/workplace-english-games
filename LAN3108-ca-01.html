@@ -1,179 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta name="referrer" content="strict-origin-when-cross-origin">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HKCV Mall - AI Writing Coach</title>
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>HKCV Mall - AI Writing Coach (V5.4)</title>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-            color: #1c1e21;
-        }
-
-        .container {
-            display: flex;
-            flex-direction: row;
-            width: 1100px;
-            max-width: 95%;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            overflow: hidden;
-            height: 85vh;
-        }
-
-        /* Left Panel */
-        .left-panel {
-            width: 35%;
-            background-color: #f7f9fc;
-            padding: 30px;
-            border-right: 1px solid #e1e4e8;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        select {
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            margin-bottom: 20px;
-            width: 100%;
-            cursor: pointer;
-            background: white;
-        }
-
-        .scenario-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #e1e4e8;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; color: #1c1e21; }
+        .container { display: flex; flex-direction: row; width: 1100px; max-width: 95%; background: white; border-radius: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; height: 85vh; }
+        .left-panel { width: 35%; background-color: #f7f9fc; padding: 30px; border-right: 1px solid #e1e4e8; overflow-y: auto; display: flex; flex-direction: column; }
+        select { padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 20px; width: 100%; cursor: pointer; background: white; }
+        .scenario-card { background: white; padding: 20px; border-radius: 12px; border: 1px solid #e1e4e8; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .email-header { font-size: 12px; color: #666; margin-bottom: 5px; }
         .email-body { font-size: 14px; line-height: 1.5; color: #333; white-space: pre-wrap; }
-        
-        .tips-box {
-            background: #e7f3ff;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 0.9em;
-            color: #0056b3;
-        }
+        .tips-box { background: #e7f3ff; padding: 15px; border-radius: 10px; font-size: 0.9em; color: #0056b3; }
         .tips-box ul { padding-left: 20px; margin: 5px 0 0; }
-
-        /* Right Panel */
-        .right-panel {
-            width: 65%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-
-        .editor-area {
-            flex: 1;
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        textarea {
-            flex: 1;
-            width: 100%;
-            border: 2px solid #e1e4e8;
-            border-radius: 12px;
-            padding: 20px;
-            font-family: inherit;
-            font-size: 16px;
-            line-height: 1.5;
-            resize: none;
-            outline: none;
-            transition: border-color 0.2s;
-            box-sizing: border-box;
-        }
+        .right-panel { width: 65%; display: flex; flex-direction: column; position: relative; }
+        .editor-area { flex: 1; padding: 30px; display: flex; flex-direction: column; }
+        textarea { flex: 1; width: 100%; border: 2px solid #e1e4e8; border-radius: 12px; padding: 20px; font-family: inherit; font-size: 16px; line-height: 1.5; resize: none; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
         textarea:focus { border-color: #0084ff; }
-
-        .btn-area {
-            padding: 20px 30px;
-            border-top: 1px solid #eee;
-            background: white;
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .send-btn {
-            background-color: #0084ff;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.2s;
-            box-shadow: 0 4px 15px rgba(0,132,255,0.3);
-        }
+        .btn-area { padding: 20px 30px; border-top: 1px solid #eee; background: white; display: flex; justify-content: flex-end; align-items: center; }
+        .send-btn { background-color: #0084ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 15px rgba(0,132,255,0.3); }
         .send-btn:hover { background-color: #006acc; transform: translateY(-1px); }
         .send-btn:disabled { background-color: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
-
-        /* Feedback Overlay */
-        .feedback-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.98);
-            z-index: 10;
-            padding: 40px;
-            box-sizing: border-box;
-            overflow-y: auto;
-            display: none;
-            animation: slideUp 0.3s ease-out;
-        }
-
+        .feedback-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); z-index: 10; padding: 40px; box-sizing: border-box; overflow-y: auto; display: none; animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        .close-btn {
-            position: absolute; top: 20px; right: 20px;
-            background: #eee; border: none; width: 35px; height: 35px;
-            border-radius: 50%; cursor: pointer; font-size: 20px;
-        }
-
-        /* Markdown Styles */
+        .close-btn { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; font-size: 20px; }
         .ai-response h2 { color: #0084ff; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 0; }
         .ai-response h3 { margin-top: 20px; color: #444; }
         .ai-response ul { padding-left: 20px; line-height: 1.6; }
-        .score-display { font-size: 24px; font-weight: bold; color: #0084ff; margin-bottom: 20px; display: inline-block; background: #e7f3ff; padding: 10px 20px; border-radius: 10px; }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3; border-top: 3px solid #0084ff;
-            border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite; margin-right: 15px; display: none;
-        }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #0084ff; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; margin-right: 15px; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        @media (max-width: 768px) {
-            .container { flex-direction: column; height: 95vh; }
-            .left-panel { width: 100%; height: 35%; padding: 15px; }
-            .right-panel { width: 100%; height: 65%; }
-        }
+        @media (max-width: 768px) { .container { flex-direction: column; height: 95vh; } .left-panel { width: 100%; height: 35%; padding: 15px; } .right-panel { width: 100%; height: 65%; } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    
     <div class="left-panel">
         <label style="font-size: 12px; font-weight: bold; color: #666; margin-bottom: 5px;">SELECT TASK:</label>
         <select id="scenarioSelector" onchange="updateScenario()">
@@ -181,25 +45,15 @@
             <option value="1">Task 2: Product Enquiry (Features)</option>
             <option value="2">Task 3: Refund Request (Policy)</option>
         </select>
-
         <h2 id="taskTitle" style="margin-top:0;">Reply to Complaint</h2>
-        
         <div class="scenario-card">
             <div class="email-header" id="emailFrom">From: Jason (Angry Customer)</div>
             <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-            <div class="email-body" id="emailBody">
-Hi, I ordered the Pina V34 hairdryer TWO weeks ago! It still hasn't arrived. 
-I need it for my trip this Friday. This is unacceptable!
-            </div>
+            <div class="email-body" id="emailBody">Hi, I ordered the Pina V34 hairdryer...</div>
         </div>
-
         <div class="tips-box">
             <strong>Teacher's Hints:</strong>
-            <ul id="hintsList">
-                <li>Apologize sincerely (don't say "Calm down")</li>
-                <li>Explain the delay (e.g. system error)</li>
-                <li>Offer a solution (e.g. express shipping)</li>
-            </ul>
+            <ul id="hintsList"><li>Apologize sincerely</li></ul>
         </div>
     </div>
 
@@ -208,12 +62,10 @@ I need it for my trip this Friday. This is unacceptable!
             <h3 style="margin-top:0;">Your Reply:</h3>
             <textarea id="studentInput" placeholder="Write your email here..."></textarea>
         </div>
-
         <div class="btn-area">
             <div class="loading-spinner" id="spinner"></div>
             <button class="send-btn" id="sendBtn" onclick="analyzeText()">Submit & Check</button>
         </div>
-
         <div class="feedback-overlay" id="feedbackOverlay">
             <button class="close-btn" onclick="closeFeedback()">×</button>
             <div class="feedback-content">
@@ -225,163 +77,106 @@ I need it for my trip this Friday. This is unacceptable!
 </div>
 
 <script>
-    // ⚠️ PASTE API KEY HERE
+    // ⚠️ 老師請填入 API Key ⚠️
     const API_KEY = "AIzaSyA3oyDBHXHDEcGPoW_ER3MPui0wuflUOAM"; 
 
-    // --- SCENARIO DATA (老師可以在這裡加更多題目) ---
     const scenarios = [
         {
             title: "Reply to Complaint (Unit 2)",
             from: "From: Jason (Angry Customer)",
             body: "Hi, I ordered the Pina V34 hairdryer TWO weeks ago! It still hasn't arrived.\nI need it for my trip this Friday. This is unacceptable!",
-            hints: [
-                "Apologize sincerely (Don't say 'Calm down')",
-                "Use softeners ('We regret to inform you...')",
-                "Offer a solution (e.g. express shipping)"
-            ],
-            aiPromptContext: "The customer complained about late delivery. Task: Apologize, explain delay, offer solution. Focus on Politeness and Softeners."
+            hints: ["Apologize sincerely", "Use softeners ('We regret...')", "Offer solution (e.g. express shipping)"],
+            aiPromptContext: "Customer complained about late delivery. Task: Apologize, explain delay, offer solution."
         },
         {
             title: "Product Enquiry (Unit 1)",
             from: "From: Sarah (Potential Buyer)",
-            body: "Hi there! I'm interested in the Bluetooth Speaker.\nIs it waterproof? Can I use it for swimming?\nAlso, does it come with a warranty?",
-            hints: [
-                "Greet politely (Semi-formal)",
-                "Explain features ('Water-resistant' vs 'Waterproof')",
-                "Mention the 1-year warranty (Passive voice)"
-            ],
-            aiPromptContext: "Customer asks if speaker is waterproof for swimming. Task: Clarify it is water-resistant (light rain OK) but NOT for swimming. Mention warranty."
+            body: "Hi! I'm interested in the Bluetooth Speaker.\nIs it waterproof? Can I use it for swimming?\nAlso, does it come with a warranty?",
+            hints: ["Greet politely", "Explain 'Water-resistant' vs 'Waterproof'", "Mention 1-year warranty"],
+            aiPromptContext: "Customer asks if speaker is waterproof for swimming. Task: Say it is water-resistant (light rain OK) but NOT for swimming."
         },
         {
             title: "Refund Request (Unit 2)",
             from: "From: Mike",
             body: "I bought a shirt yesterday but I don't like the color.\nI cut off the tag already.\nCan I get a full refund?",
-            hints: [
-                "Refuse politely (Use 'I am afraid...')",
-                "Explain policy (No refund if tag removed)",
-                "Offer alternative (Maybe exchange?)"
-            ],
-            aiPromptContext: "Customer wants refund but removed tag. Task: Refuse refund politely citing company policy, but offer an exchange if possible. Tone: Firm but polite."
+            hints: ["Refuse politely ('I am afraid...')", "Explain policy (Tag removed)", "Offer exchange"],
+            aiPromptContext: "Customer wants refund but removed tag. Task: Refuse refund politely citing policy, offer exchange."
         }
     ];
 
     let currentScenario = 0;
 
-    // --- FUNCTIONS ---
-
     function updateScenario() {
         const index = document.getElementById('scenarioSelector').value;
         currentScenario = index;
         const data = scenarios[index];
-
         document.getElementById('taskTitle').innerText = data.title;
         document.getElementById('emailFrom').innerText = data.from;
         document.getElementById('emailBody').innerText = data.body;
-        
         const hintsUl = document.getElementById('hintsList');
         hintsUl.innerHTML = "";
-        data.hints.forEach(hint => {
-            const li = document.createElement('li');
-            li.innerText = hint;
-            hintsUl.appendChild(li);
-        });
-
-        // Clear input when switching tasks? Optional.
-        // document.getElementById('studentInput').value = "";
+        data.hints.forEach(h => { let li = document.createElement('li'); li.innerText = h; hintsUl.appendChild(li); });
     }
 
- async function analyzeText() {
+    async function analyzeText() {
         const text = document.getElementById('studentInput').value.trim();
         const btn = document.getElementById('sendBtn');
         const spinner = document.getElementById('spinner');
 
-        if (text.length < 10) { alert("Please write a bit more!"); return; }
-        // 檢查 API Key 格式
-        if (!API_KEY || API_KEY.includes("PASTE") || API_KEY.length < 10) { 
-            alert("Teacher Alert: API Key is missing or invalid."); return; 
-        }
+        if (text.length < 5) { alert("Please write more!"); return; }
+        if (!API_KEY || API_KEY.length < 10) { alert("API Key Missing!"); return; }
 
-        btn.disabled = true; 
-        btn.innerText = "Connecting to AI..."; 
-        spinner.style.display = "block";
-
-        const scenarioData = scenarios[currentScenario];
+        btn.disabled = true; btn.innerText = "Marking..."; spinner.style.display = "block";
 
         const prompt = `
             Act as a supportive Vocational English Teacher.
-            Review the student's email.
-            Scenario: ${scenarioData.aiPromptContext}
+            Scenario: ${scenarios[currentScenario].aiPromptContext}
             Student's Draft: "${text}"
             
             Provide feedback in Markdown:
-            1. **Score:** (Out of 10).
-            2. **Good Points:** (What did they do well?).
-            3. **Improvement Areas:** (Focus on Tone, Grammar, Clarity).
-            4. **Better Version:** (A simple, professional rewrite).
+            1. **Score:** (Out of 10)
+            2. **Feedback:** (Tone, Grammar, Structure)
+            3. **Better Version:**
         `;
 
         try {
-            // --- 重點修改：加入 Safety Settings (叫 AI 唔好 Block 投訴信內容) ---
-            const requestBody = {
-                contents: [{ parts: [{ text: prompt }] }],
-                safetySettings: [
-                    { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-                    { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
-                ]
-            };
-            // -----------------------------------------------------------
-
+            // ⬇️ 關鍵 2：加入 Safety Settings，防止 AI Block 憤怒客人的內容
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    safetySettings: [
+                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+                    ]
+                })
             });
 
             const data = await response.json();
 
-            // --- 強力 Debug：睇下到底 Google 回覆咗咩 ---
-            console.log("Google API Response:", data); // 老師可以按 F12睇 Console
-
-            if (data.error) {
-                throw new Error(`Google API Error: ${data.error.message}`);
-            }
-
-            // 檢查是否因為「安全理由」被 Block
-            if (data.promptFeedback && data.promptFeedback.blockReason) {
-                throw new Error(`Blocked by AI Safety Filter: ${data.promptFeedback.blockReason} (Try to be more polite!)`);
-            }
-
-            if (!data.candidates || data.candidates.length === 0) {
-                throw new Error("No response content. (Possibility: API Key domain restriction issue or Safety Filter)");
-            }
+            // ⬇️ 關鍵 3：防止 Crash 的錯誤檢查
+            if (data.error) throw new Error(data.error.message);
+            if (!data.candidates || !data.candidates[0]) throw new Error("AI Blocked the response (Safety Filter).");
 
             const output = data.candidates[0].content.parts[0].text;
-            
             document.getElementById('aiOutput').innerHTML = marked.parse(output);
             document.getElementById('feedbackOverlay').style.display = "block";
 
         } catch (e) {
-            alert("⚠️ Error Details:\n" + e.message + "\n\n(If it says 'API key not valid', check your Google Cloud Console 'Website restrictions' again. Make sure there are no typos in the URL.)");
+            alert("Error: " + e.message + "\n(Check API Key or Website Restrictions)");
             console.error(e);
         } finally {
-            btn.disabled = false; 
-            btn.innerText = "Submit & Check"; 
-            spinner.style.display = "none";
+            btn.disabled = false; btn.innerText = "Submit & Check"; spinner.style.display = "none";
         }
     }
 
-    function closeFeedback() {
-        document.getElementById('feedbackOverlay').style.display = "none";
-    }
-
-    // Init
+    function closeFeedback() { document.getElementById('feedbackOverlay').style.display = "none"; }
+    
     updateScenario();
-
 </script>
 
 </body>
-
 </html>
-
