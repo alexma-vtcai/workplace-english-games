@@ -1,401 +1,666 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-HK">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>HKCV Mall - Smart Training V5.1</title>
-<style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .phone-container { width: 100%; max-width: 400px; height: 90vh; background-color: #fff; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; display: flex; flex-direction: column; border: 8px solid #333; position: relative; }
-    .header { background-color: #0084ff; color: white; padding: 15px; text-align: center; font-weight: bold; display: flex; justify-content: space-between; align-items: center; z-index: 2; }
-    .progress-bar-container { background: #006acc; height: 6px; width: 100%; }
-    .progress-bar-fill { height: 100%; background-color: #00ff88; width: 0%; transition: width 0.3s ease; }
-    .chat-area { flex: 1; padding: 15px; overflow-y: auto; background-color: #e4e6eb; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
-    .message { max-width: 85%; padding: 12px 16px; border-radius: 18px; font-size: 14px; line-height: 1.4; animation: popIn 0.3s ease-out; position: relative; word-wrap: break-word; }
-    @keyframes popIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .message.customer { background-color: white; align-self: flex-start; border-bottom-left-radius: 4px; color: #1c1e21; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    .message.you { background-color: #0084ff; color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-    .controls { padding: 15px; background-color: white; border-top: 1px solid #ddd; z-index: 2; }
-    .option-btn { display: block; width: 100%; padding: 12px; margin-bottom: 8px; background-color: #f0f2f5; border: 2px solid #e4e6eb; border-radius: 10px; text-align: left; font-size: 13px; cursor: pointer; transition: all 0.2s; color: #050505; font-weight: 500; }
-    .option-btn:hover { background-color: #e7f3ff; border-color: #0084ff; }
-    .option-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-    .feedback-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; border-radius: 15px; text-align: center; z-index: 100; display: none; box-shadow: 0 10px 30px rgba(0,0,0,0.4); color: white; width: 80%; backdrop-filter: blur(5px); animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-    @keyframes popUp { from { transform: translate(-50%, -40%) scale(0.8); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
-    .feedback-title { font-size: 24px; margin-bottom: 10px; display: block; }
-    .feedback-text { font-size: 16px; line-height: 1.4; }
-    .continue-hint { margin-top: 15px; font-size: 12px; opacity: 0.8; font-weight: normal; }
-    .result-screen { display: none; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center; padding: 30px; background: white; z-index: 20; position: absolute; top: 0; left: 0; width: 100%; box-sizing: border-box; }
-    .result-score { font-size: 48px; font-weight: bold; color: #0084ff; margin: 20px 0; }
-    .retry-btn { background-color: #0084ff; color: white; border: none; padding: 15px 40px; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,132,255,0.3); transition: transform 0.2s; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN3108 Chat Challenge V3.1</title>
+    <style>
+        :root {
+            --primary-color: #0084ff; /* Messenger Blue */
+            --bg-color: #f0f2f5;
+            --chat-bg: #e4e6eb;
+            --user-chat-bg: #0084ff;
+            --text-color: #050505;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 480px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        /* --- 🆕 Start Screen Styles --- */
+        .start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ffffff 0%, #f0f2f5 100%);
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            box-sizing: border-box;
+            justify-content: center;
+        }
+
+        .role-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-left: 5px solid var(--primary-color);
+            margin-bottom: 30px;
+        }
+
+        .role-title { font-size: 14px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .role-name { font-size: 24px; color: #333; margin: 10px 0; font-weight: 800; }
+        .role-desc { font-size: 14px; color: #555; line-height: 1.6; }
+
+        .mission-list { margin-top: 20px; }
+        .mission-item { display: flex; align-items: center; margin-bottom: 15px; font-size: 14px; color: #444; background: #f9f9f9; padding: 10px; border-radius: 8px; }
+        .mission-icon { width: 30px; height: 30px; background: #e7f3ff; color: var(--primary-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; flex-shrink: 0; }
+
+        .start-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 5px 15px rgba(0,132,255,0.3);
+            transition: transform 0.2s;
+        }
+        .start-btn:active { transform: scale(0.98); }
+
+        /* Messenger Header */
+        .chat-header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #ccc;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 18px;
+        }
+        .avatar.client { background-color: #ff5722; } 
+        .avatar.colleague { background-color: #4caf50; } 
+
+        .header-info h2 { margin: 0; font-size: 16px; color: var(--text-color); }
+        .header-info p { margin: 2px 0 0; font-size: 12px; color: #65676b; }
+
+        /* Progress Bar */
+        .progress-bar { height: 4px; background: #eee; width: 100%; }
+        .progress-fill { height: 100%; background: var(--primary-color); width: 0%; transition: width 0.3s; }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: white;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .message.incoming {
+            background-color: var(--chat-bg);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+            color: black;
+        }
+
+        .message.outgoing {
+            background-color: var(--user-chat-bg);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+            display: none; 
+        }
+
+        .question-label {
+            font-size: 12px;
+            color: #65676b;
+            text-align: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        /* Interaction Area */
+        .options-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #ddd;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #e4e6eb;
+            background: white;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-color);
+        }
+
+        .option-btn:hover { background-color: #f0f2f5; border-color: #ccc; }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn:disabled { color: #999; cursor: not-allowed; }
+
+        /* Feedback Modal */
+        .feedback-modal {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.15);
+            box-sizing: border-box;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .feedback-modal.show { transform: translateY(0); }
+
+        .feedback-title { font-weight: bold; font-size: 18px; margin-bottom: 5px; }
+        .feedback-correct { color: #2ecc71; }
+        .feedback-wrong { color: #e74c3c; }
+        
+        .explanation-text { font-size: 14px; color: #444; line-height: 1.5; background: #f9f9f9; padding: 10px; border-radius: 8px; border-left: 4px solid var(--primary-color); }
+        .explanation-zh { font-size: 13px; color: #666; margin-top: 5px; }
+
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Result Screen */
+        .result-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,132,255,0.3);
+        }
+
+        .stats-table { width: 100%; margin: 20px 0; border-collapse: collapse; }
+        .stats-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .stats-table td:last-child { text-align: right; font-weight: bold; }
+        .bar-container { height: 6px; background: #eee; border-radius: 3px; width: 100px; margin-top: 5px; }
+        .bar-fill { height: 100%; background: #2ecc71; border-radius: 3px; }
+
+        .restart-btn {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 10px 30px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
 <body>
+
 <div class="phone-container">
-    <div class="header">
-        <div>HKCV Mall Inbox 🛍️</div>
-        <div style="font-size: 0.8em;" id="levelIndicator">Loading...</div>
+    
+    <div class="start-screen" id="startScreen">
+        <h1 style="color: #0084ff; margin-bottom: 10px;">Workplace English</h1>
+        <div class="role-card">
+            <div class="role-title">ROLE CARD</div>
+            <div class="role-name">CS Officer</div>
+            <div class="role-desc">
+                You work at <strong>Global Logistics Co.</strong><br>
+                Your responsibility is to handle customer inquiries professionally and communicate clearly with your internal team.
+            </div>
+        </div>
+
+        <div class="mission-list">
+            <div class="mission-item">
+                <div class="mission-icon">1</div>
+                <div>
+                    <strong>Mr. Smith (Client)</strong><br>
+                    He is angry about a delay. Use <em>Formal Tone</em> & <em>Softeners</em>.
+                </div>
+            </div>
+            <div class="mission-item">
+                <div class="mission-icon">2</div>
+                <div>
+                    <strong>Sarah (Colleague)</strong><br>
+                    She needs updates. Use <em>Semi-formal Tone</em> & correct <em>Grammar</em>.
+                </div>
+            </div>
+        </div>
+
+        <button class="start-btn" onclick="startGame()">Start Shift ➜</button>
     </div>
-    <div class="progress-bar-container"><div class="progress-bar-fill" id="progressBar"></div></div>
+
+    <div class="chat-header">
+        <div class="avatar client" id="headerAvatar">S</div>
+        <div class="header-info">
+            <h2 id="headerName">Mr. Smith</h2>
+            <p id="headerStatus">Active now • Scenario 1/2</p>
+        </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
     <div class="chat-area" id="chatArea">
-        <div class="message customer">System: Welcome back, Amy.<br>Generating 10 random customer enquiries...</div>
+        <div class="question-label" id="qLabel">Question 1 of 12</div>
+        <div class="message incoming" id="incomingMsg">Loading...</div>
+        <div class="message outgoing" id="outgoingMsg">User reply...</div>
     </div>
-    <div class="controls" id="controls">
-        <p style="margin: 0 0 10px; font-size: 0.8rem; color: #65676b; font-weight: bold;">Select the best reply:</p>
-        <div id="options-container"></div>
+
+    <div class="options-area" id="optionsArea">
+        </div>
+
+    <div class="feedback-modal" id="feedbackModal">
+        <div class="feedback-title" id="fbTitle">Correct!</div>
+        <div class="explanation-text" id="fbText">Here is why...</div>
+        <div class="explanation-zh" id="fbTextZh">中文解釋...</div>
+        <button class="next-btn" onclick="nextQuestion()">Next Question ➜</button>
     </div>
-    <div class="feedback-overlay" id="feedback">
-        <span class="feedback-title" id="feedback-icon"></span>
-        <div class="feedback-text" id="feedback-msg"></div>
-        <div class="continue-hint">(Wait for next question...)</div>
-    </div>
+
     <div class="result-screen" id="resultScreen">
-        <h1 id="resultTitle">Training Complete</h1>
-        <div class="result-score" id="finalScore">0/10</div>
-        <p class="result-text" id="resultComment">Loading...</p>
-        <button class="retry-btn" onclick="location.reload()">New Questions 🔄</button>
+        <h1>Performance Report</h1>
+        <div class="score-circle" id="finalScore">0</div>
+        <p>Excellent effort!</p>
+        <table class="stats-table" id="statsTable"></table>
+        <button class="restart-btn" onclick="location.reload()">Start New Shift</button>
     </div>
 </div>
 
 <script>
-try {
-    const questionPool = [
+    // ============================================
+    // 1. Data Pool (30 Questions)
+    // ============================================
+    
+    // Pool A: Mr. Smith (Client/External) - Formal
+    const externalPool = [
         {
-            customerMsg: "Hi! I want to ask about the Smart Watch.",
-            answers: [
-                { text: "Dear Sir/Madam, We acknowledge your request.", correct: false, feedback: "Too Formal! 🤖<br>On social media, 'Dear Sir/Madam' sounds robotic." },
-                { text: "What do you want to know?", correct: false, feedback: "Too Blunt! 😠<br>This sounds rude. Use polite opening phrases." },
-                { text: "Hi there! Sure, how can I help you with the Smart Watch? 👋", correct: true, feedback: "Perfect! 🌟<br>Friendly and professional tone." }
-            ]
+            q: "I ordered the goods two weeks ago but haven't received them. (You want to investigate)",
+            options: ["I will figure out what happened.", "I will investigate the matter immediately."],
+            correct: 1,
+            cat: "Tone",
+            exp: { en: "'Investigate' is more professional than 'figure out'.", zh: "對於客戶投訴，使用 'Investigate the matter' 比 'figure out' 更專業且莊重。" }
         },
         {
-            customerMsg: "Hello HKCV Mall.",
-            answers: [
-                { text: "Who are you?", correct: false, feedback: "Rude! ❌<br>Never ask a customer 'Who are you?' directly." },
-                { text: "Hi! How may I assist you today? 😊", correct: true, feedback: "Correct! ✅<br>Standard polite opening for enquiries." },
-                { text: "We are open.", correct: false, feedback: "Irrelevant 🤷<br>The customer hasn't asked if you are open yet." }
-            ]
+            q: "This is entirely your fault! (You want to apologize professionally)",
+            options: ["We apologize for the inconvenience caused.", "Sorry about that mistake."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "Use 'We apologize for the inconvenience' for formal complaints.", zh: "面對客戶指責，'Apologize for the inconvenience caused' 是標準的商務道歉用語。" }
         },
         {
-            customerMsg: "Is the Blue Yoga Mat in stock?",
-            answers: [
-                { text: "No stock.", correct: false, feedback: "Too Short! 📉<br>Incomplete sentence." },
-                { text: "Sorry, the blue one is sold out. Would you like the Purple one instead?", correct: true, feedback: "Great Job! 🌟<br>You offered an alternative (Purple) to save the sale." },
-                { text: "You can buy the Purple one.", correct: false, feedback: "Too Pushy ✋<br>Don't command the customer. Ask them nicely." }
-            ]
+            q: "Can you give me a discount? (You need to refuse politely)",
+            options: ["No, we can't do that.", "I am afraid we are unable to offer a discount."],
+            correct: 1,
+            cat: "Tone",
+            exp: { en: "Use 'I am afraid...' to soften bad news.", zh: "拒絕請求時，使用 'I am afraid...' 作為緩衝語 (Softener) 會比直接說 No 更禮貌。" }
         },
         {
-            customerMsg: "Can I buy 50 units of the portable fan?",
-            answers: [
-                { text: "That is too many.", correct: false, feedback: "Unprofessional ❌<br>Never reject a big order like this." },
-                { text: "Please contact our wholesale department for bulk orders. 📦", correct: true, feedback: "Correct! ✅<br>Directing large orders to the right department." },
-                { text: "We don't have enough.", correct: false, feedback: "Weak 👎<br>Don't just say 'no'. Offer a solution." }
-            ]
+            q: "Send me the report by 5pm. (You are confirming the request)",
+            options: ["The report will be sent by 5pm.", "I will send the report by 5pm."],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Passive voice focuses on the action/object, not the person.", zh: "被動語態 (The report will be sent) 強調事情會被完成，感覺較客觀專業。" }
         },
         {
-            customerMsg: "Is this toaster safe for kids?",
-            answers: [
-                { text: "Yes, it is child-proof and the outside stays cool. 🍞", correct: true, feedback: "Excellent! 🌟<br>You highlighted the benefit 'child-proof'." },
-                { text: "Don't let them touch it.", correct: false, feedback: "Warning ⚠️<br>This is a safety warning, not a product feature." },
-                { text: "It is very hot.", correct: false, feedback: "Negative 📉<br>Don't scare the customer away." }
-            ]
+            q: "Your service is terrible. (You want to promise improvement)",
+            options: ["We will try to do better.", "We will ensure this does not happen again."],
+            correct: 1,
+            cat: "Tone",
+            exp: { en: "'Ensure' shows commitment; 'try' sounds weak.", zh: "'Ensure' (確保) 展現了解決問題的決心，'Try' (嘗試) 聽起來信心不足。" }
         },
         {
-            customerMsg: "Is the blender heavy?",
-            answers: [
-                { text: "It is lightweight and easy to store.", correct: true, feedback: "Correct! ✅<br>'Lightweight' is the positive adjective we want." },
-                { text: "It is not heavy.", correct: false, feedback: "Too Simple 😐<br>Try to use better vocabulary like 'Lightweight'." },
-                { text: "The weight is acceptable.", correct: false, feedback: "Vague 🌫️<br>'Acceptable' doesn't sound very attractive." }
-            ]
+            q: "We need the solution now. (You propose a fix)",
+            options: ["We have rectified the problem.", "We have fixed the problem."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Rectify' is a formal synonym for 'fix'.", zh: "在正式商業書信中，'Rectify' 是 'Fix' 的正式用詞。" }
         },
         {
-            customerMsg: "Does the skincare set expire soon?",
-            answers: [
-                { text: "No, it is long-lasting.", correct: false, feedback: "Wrong Word 📖<br>'Long-lasting' describes durability, not expiry." },
-                { text: "It has a shelf life of 2 years. 🧴", correct: true, feedback: "Perfect! 🌟<br>'Shelf life' is the correct term for expiry duration." },
-                { text: "Maybe next year.", correct: false, feedback: "Guessing? ❌<br>Never guess. Be precise with dates." }
-            ]
+            q: "Are you sure the price is correct? (Confirming accuracy)",
+            options: ["I checked and it's right.", "I have verified the pricing details."],
+            correct: 1,
+            cat: "Vocabulary",
+            exp: { en: "'Verified' is stronger and more formal than 'checked'.", zh: "'Verified' (核實) 比 'Checked' (檢查) 聽起來更嚴謹和專業。" }
         },
         {
-            customerMsg: "Is this keyboard wireless?",
-            answers: [
-                { text: "Yes, no wire.", correct: false, feedback: "Chinglish 🇭🇰<br>The correct term is 'Wireless' or 'Cordless'." },
-                { text: "Yes, it connects via Bluetooth for a hassle-free experience. ⌨️", correct: true, feedback: "Great! 🌟<br>Feature (Bluetooth) and benefit (Hassle-free)." },
-                { text: "It is wire-free.", correct: false, feedback: "Odd Phrasing 🤨<br>'Wire-free' is rarely used for keyboards." }
-            ]
+            q: "I want to speak to your manager.",
+            options: ["I will transfer you to my supervisor.", "I will pass you to my boss."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Supervisor' and 'Transfer' are professional terms.", zh: "'Supervisor' 比 'Boss' 正式；'Transfer' 比 'Pass' 更適合用於電話或溝通轉接。" }
         },
         {
-            customerMsg: "Where is your shop?",
-            answers: [
-                { text: "We are located at 15 Nathan Road.", correct: true, feedback: "Correct! ✅<br>We use 'AT' for specific addresses." },
-                { text: "We are located on 15 Nathan Road.", correct: false, feedback: "Grammar Mistake ❌<br>Use 'AT' for specific numbers, 'ON' for just the road name." },
-                { text: "We are in 15 Nathan Road.", correct: false, feedback: "Grammar Mistake ❌<br>Use 'AT' for addresses." }
-            ]
+            q: "Why is the delivery late?",
+            options: ["Ideally, it should have arrived yesterday.", "Ideally, it arrived yesterday."],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Use 'Should have + past participle' for past expectations.", zh: "表達「本應發生但未發生」的事，應使用 'Should have + p.p.' (Should have arrived)。" }
         },
         {
-            customerMsg: "Which district are you in?",
-            answers: [
-                { text: "We are located at Mong Kok.", correct: false, feedback: "Grammar Mistake ❌<br>Use 'IN' for districts/areas." },
-                { text: "We are located in Mong Kok.", correct: true, feedback: "Correct! ✅<br>We use 'IN' for districts (e.g., In Mong Kok)." },
-                { text: "Go to Mong Kok.", correct: false, feedback: "Rude 😠<br>This sounds like an order." }
-            ]
+            q: "The product is broken.",
+            options: ["A replacement will be arranged.", "I will arrange a replacement."],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Passive voice (be arranged) sounds less personal and more policy-driven.", zh: "使用被動語態 (Will be arranged) 可以讓解決方案聽起來像是公司的標準程序，而非個人行為。" }
         },
         {
-            customerMsg: "Can you give me a free gift?",
-            answers: [
-                { text: "No, we don't do that.", correct: false, feedback: "Too Direct 🛑<br>It sounds unfriendly." },
-                { text: "I am afraid we do not have any free gifts at the moment. 🙏", correct: true, feedback: "Excellent! 🌟<br>'I am afraid' softens the refusal politely." },
-                { text: "You need to pay for gifts.", correct: false, feedback: "Rude ❌<br>Don't lecture the customer on money." }
-            ]
+            q: "I am demanding a full refund.",
+            options: ["We have processed your refund request.", "We did your refund request."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Processed' is the correct business verb for requests.", zh: "處理退款或申請，動詞應該用 'Process' 而非 'Do'。" }
         },
         {
-            customerMsg: "Can I return this used lipstick?",
-            answers: [
-                { text: "Unfortunately, for hygiene reasons, we cannot accept returns.", correct: true, feedback: "Correct! ✅<br>You explained the reason (hygiene) politely." },
-                { text: "No, you used it already.", correct: false, feedback: "Accusatory 👈<br>Don't blame the customer directly." },
-                { text: "We regret to reject your request.", correct: false, feedback: "Too Robotic 🤖<br>This sounds like a legal letter, not a chat." }
-            ]
+            q: "When can I meet you?",
+            options: ["I am available on Tuesday.", "I am free on Tuesday."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Available' is professional; 'Free' is social.", zh: "在商務約見中，'Available' 比 'Free' 得體，'Free' 感覺像是在約朋友。" }
         },
         {
-            customerMsg: "Do I get a warranty?",
-            answers: [
-                { text: "A 1-year warranty is included with your purchase. 🛡️", correct: true, feedback: "Correct! ✅<br>Using Passive Voice focuses on the service (Warranty)." },
-                { text: "We give you 1 year warranty.", correct: false, feedback: "Too Informal 💬<br>Passive is more professional here." },
-                { text: "Warranty have 1 year.", correct: false, feedback: "Grammar Error ❌<br>'Warranty have' is incorrect." }
-            ]
+            q: "You made a huge error.",
+            options: ["There appears to be a misunderstanding.", "You are wrong."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "Shift blame away from people using 'There appears to be...'.", zh: "使用 'There appears to be...' (看來似乎有...) 可以避免直接指責對方，降低衝突。" }
         },
         {
-            customerMsg: "Why does the bag have this strap?",
-            answers: [
-                { text: "It is for carrying.", correct: false, feedback: "Too Simple 📉<br>Explain the benefit clearly." },
-                { text: "The strap is adjustable so that you can wear it comfortably.", correct: true, feedback: "Great! 🌟<br>You used 'so that' to connect the feature to the benefit." },
-                { text: "Because to carry it.", correct: false, feedback: "Grammar Error ❌<br>Incorrect sentence structure." }
-            ]
+            q: "Send me the details.",
+            options: ["I would be grateful if you could provide the details.", "Give me the details please."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "Use indirect questions for politeness.", zh: "使用 'I would be grateful if...' 是非常標準且禮貌的請求方式。" }
         },
         {
-            customerMsg: "The delivery is LATE! I am angry! 😡",
-            answers: [
-                { text: "Please calm down.", correct: false, feedback: "Trigger Phrase! 💣<br>Never tell an angry person to calm down." },
-                { text: "It is the courier's fault.", correct: false, feedback: "Blaming Others 👈<br>Don't shift the blame. Take responsibility." },
-                { text: "I apologize for the delay. Let me track it for you. 🚚", correct: true, feedback: "Perfect! 🌟<br>Apologize and offer an immediate action." }
-            ]
-        },
-        {
-            customerMsg: "This product is broken!",
-            answers: [
-                { text: "You must have broken it.", correct: false, feedback: "Accusatory ❌<br>Never accuse the customer of breaking it." },
-                { text: "Please send us a photo so we can assist you. 📸", correct: true, feedback: "Correct! ✅<br>Asking for evidence politely to solve the problem." },
-                { text: "Buy a new one.", correct: false, feedback: "Rude! 😠<br>You will lose the customer forever." }
-            ]
-        },
-        {
-            customerMsg: "Do you take credit cards?",
-            answers: [
-                { text: "Yes, give me your card number.", correct: false, feedback: "Unsecure! 🔓<br>Never ask for card details in a chat." },
-                { text: "We accept Visa, Mastercard, and PayMe.", correct: true, feedback: "Correct! ✅<br>List the payment methods clearly." },
-                { text: "Cash only.", correct: false, feedback: "Unlikely 🤷<br>Online shops usually don't take cash." }
-            ]
-        },
-        {
-            customerMsg: "Are you open now? It is midnight.",
-            answers: [
-                { text: "We are closed. Go to sleep.", correct: false, feedback: "Very Rude 😴<br>Avoid personal comments." },
-                { text: "Our business hours are 10am to 8pm. Please leave a message! 🌙", correct: true, feedback: "Correct! ✅<br>State the hours and encourage a message." },
-                { text: "No one is here.", correct: false, feedback: "Unprofessional ❌<br>Sounds like a ghost town." }
-            ]
-        },
-        {
-            customerMsg: "How long does charging take?",
-            answers: [
-                { text: "It takes about 2 hours to fully charge. 🔋", correct: true, feedback: "Correct! ✅<br>Clear and complete sentence." },
-                { text: "Wait 2 hours.", correct: false, feedback: "Imperative 😠<br>Don't order the customer to wait." },
-                { text: "Charging needs 2 hours.", correct: false, feedback: "Chinglish 🇭🇰<br>Better to say 'It takes...'." }
-            ]
-        },
-        {
-            customerMsg: "Is the Coffee Machine complicated?",
-            answers: [
-                { text: "Yes, it is very hard.", correct: false, feedback: "Negative ❌<br>Don't discourage the buyer." },
-                { text: "No, it features a user-friendly interface. ☕", correct: true, feedback: "Excellent! 🌟<br>'User-friendly' is a key vocabulary word." },
-                { text: "It is easy.", correct: false, feedback: "Okay... 😐<br>But 'User-friendly' is much better." }
-            ]
-        },
-        {
-            customerMsg: "Can I get a discount code?",
-            answers: [
-                { text: "Use code HKCV10 for 10% off! 🎉", correct: true, feedback: "Correct! ✅<br>Encourages the purchase." },
-                { text: "No discount for you.", correct: false, feedback: "Rude 😠<br>Sounds personal and mean." },
-                { text: "We seldom give discounts.", correct: false, feedback: "Negative 📉<br>Makes the shop sound stingy." }
-            ]
-        },
-        {
-            customerMsg: "The user manual is missing.",
-            answers: [
-                { text: "Check the box again.", correct: false, feedback: "Bossy 👈<br>Don't assume the customer is blind." },
-                { text: "You can download the PDF version from our website. 📄", correct: true, feedback: "Helpful! 🌟<br>Providing an immediate solution." },
-                { text: "I will send it later.", correct: false, feedback: "Vague 🌫️<br>Give a specific time or method." }
-            ]
-        },
-        {
-            customerMsg: "Is this backpack waterproof?",
-            answers: [
-                { text: "It is water-resistant, suitable for light rain. ☔", correct: true, feedback: "Precise! 🎯<br>'Water-resistant' is more accurate than 'proof'." },
-                { text: "Yes, water cannot go inside.", correct: false, feedback: "Clumsy 🥴<br>Poor sentence structure." },
-                { text: "It is water-proof.", correct: false, feedback: "Inaccurate ⚠️<br>Few bags are 100% water-PROOF." }
-            ]
-        },
-        {
-            customerMsg: "How do I become a member?",
-            answers: [
-                { text: "You can register on our website for free. 💻", correct: true, feedback: "Correct! ✅<br>Clear instruction." },
-                { text: "Join our club.", correct: false, feedback: "Too Casual 🎈<br>'Register' sounds more professional." },
-                { text: "Give me your name.", correct: false, feedback: "Too Direct 🛑<br>Asking for info without explaining why." }
-            ]
-        },
-        {
-            customerMsg: "I want to complain about the staff.",
-            answers: [
-                { text: "Who?", correct: false, feedback: "Too Short 😠<br>Sounds aggressive." },
-                { text: "We take this seriously. Please tell us more details.", correct: true, feedback: "Professional 🌟<br>Acknowledging the severity of the issue." },
-                { text: "Our staff is good.", correct: false, feedback: "Defensive 🛡️<br>Don't argue with a customer immediately." }
-            ]
-        },
-        {
-            customerMsg: "Love your products! They are great.",
-            answers: [
-                { text: "I know.", correct: false, feedback: "Arrogant 😎<br>Too proud." },
-                { text: "Thank you for your support! ❤️", correct: true, feedback: "Perfect! 🌟<br>Always thank the customer for praise." },
-                { text: "Buy more then.", correct: false, feedback: "Greedy 💰<br>Ruins the nice moment." }
-            ]
-        },
-        {
-            customerMsg: "Do you ship to Macau?",
-            answers: [
-                { text: "Yes, we provide shipping to Macau via SF Express. 🚢", correct: true, feedback: "Correct! ✅<br>Formal and informative." },
-                { text: "Yes, we send to Macau.", correct: false, feedback: "Informal 💬<br>'Provide shipping' is better." },
-                { text: "Macau can.", correct: false, feedback: "Chinglish 🇭🇰<br>Incomplete grammar." }
-            ]
-        },
-        {
-            customerMsg: "Can I reserve this jacket?",
-            answers: [
-                { text: "We can hold it for you for 24 hours. 🧥", correct: true, feedback: "Correct! ✅<br>'Hold' is the common term for reservation." },
-                { text: "Don't buy it yet.", correct: false, feedback: "Confusing 😵<br>Why tell them not to buy?" },
-                { text: "Reservation is permitted.", correct: false, feedback: "Too Formal 🤖<br>Sounds like a rulebook." }
-            ]
-        },
-        {
-            customerMsg: "Is the material durable?",
-            answers: [
-                { text: "It is made of cheap plastic.", correct: false, feedback: "Negative 📉<br>Never call your own product 'cheap'." },
-                { text: "Yes, it is made of high-quality nylon.", correct: true, feedback: "Correct! ✅<br>Highlight the quality material." },
-                { text: "It lasts long time.", correct: false, feedback: "Grammar Mistake ❌<br>Should be 'It lasts FOR A long time'." }
-            ]
-        },
-        {
-            customerMsg: "My size is wrong. Can I exchange?",
-            answers: [
-                { text: "You bought the wrong size.", correct: false, feedback: "Blaming 👈<br>Avoid 'You' statements when pointing out errors." },
-                { text: "Yes, exchanges are allowed within 7 days. 🔄", correct: true, feedback: "Correct! ✅<br>Stating policy clearly." },
-                { text: "Change is okay.", correct: false, feedback: "Vague 🌫️<br>'Exchange' is the proper business term." }
-            ]
+            q: "Is the project done?",
+            options: ["The project has been completed.", "The project is finished."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Completed' sounds more formal than 'finished' for tasks.", zh: "對於專案或工程，'Completed' 比 'Finished' 更正式。" }
         }
     ];
 
-    let gameQuestions = [], currentQIndex = 0, score = 0, isWaiting = false;
-    const els = {
-        chat: document.getElementById('chatArea'),
-        opts: document.getElementById('options-container'),
-        feedback: document.getElementById('feedback'),
-        fbIcon: document.getElementById('feedback-icon'),
-        fbMsg: document.getElementById('feedback-msg'),
-        level: document.getElementById('levelIndicator'),
-        progress: document.getElementById('progressBar'),
-        result: document.getElementById('resultScreen'),
-        fScore: document.getElementById('finalScore'),
-        fTitle: document.getElementById('resultTitle'),
-        fComment: document.getElementById('resultComment')
-    };
+    // Pool B: Sarah (Colleague/Internal) - Semi-formal
+    const internalPool = [
+        {
+            q: "Can you help me with the report? (Asking for help)",
+            options: ["I want you to help me.", "Could you give me a hand?"],
+            correct: 1,
+            cat: "Tone",
+            exp: { en: "'Could you give me a hand' is friendly and semi-formal.", zh: "對同事可以使用 'Give me a hand'，這是一種友善且半正式的求助方式。" }
+        },
+        {
+            q: "Do you have the meeting minutes? (Checking status)",
+            options: ["Have the minutes been distributed?", "Did you send the minutes?"],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Use passive voice to avoid sounding accusatory.", zh: "即使對同事，使用被動語態 'Have... been distributed' 也可以避免像是在質問對方 'Did you...?'" }
+        },
+        {
+            q: "I think your idea is bad. (Disagreeing politely)",
+            options: ["I have some reservations about that idea.", "I hate that idea."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "'Reservations' implies doubt without being rude.", zh: "表示不同意時，'I have reservations' (我有所保留) 比直接說不喜歡更有禮貌。" }
+        },
+        {
+            q: "The printer is broken again.",
+            options: ["We need to look into this issue.", "We need to check this thing."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Look into' is a good phrasal verb for workplace investigation.", zh: "'Look into' (調查/了解) 是職場常用的片語，比單純用 'Check' 更具體。" }
+        },
+        {
+            q: "Are you coming to the lunch?",
+            options: ["I'm afraid I can't make it.", "No, I'm not coming."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "'Can't make it' is a standard polite excuse.", zh: "'Can't make it' 是婉拒邀約的標準用語，比直接說 No 婉轉。" }
+        },
+        {
+            q: "Did you finish the slide deck?",
+            options: ["I am currently working on it.", "I am doing it now."],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Present Continuous 'Currently working on' sounds professional.", zh: "'Currently working on it' 聽起來比 'Doing it now' 更具專業感。" }
+        },
+        {
+            q: "Thanks for your help.",
+            options: ["You are welcome.", "No problem."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "'You are welcome' is safer; 'No problem' is too casual for some.", zh: "雖然 'No problem' 很常用，但在書面溝通中 'You are welcome' 永遠是最得體的選擇。" }
+        },
+        {
+            q: "We should change the deadline.",
+            options: ["I suggest we postpone the deadline.", "I say we move the deadline."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Postpone' is the specific verb for moving dates later.", zh: "'Postpone' (延期) 是專門用於延後期限的動詞。" }
+        },
+        {
+            q: "I didn't get your email.",
+            options: ["I did not receive your email.", "I didn't get it."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Receive' is the standard verb for email.", zh: "'Get' 比較口語，'Receive' 是標準書面語。" }
+        },
+        {
+            q: "Let's meet tomorrow.",
+            options: ["I look forward to meeting you.", "I want to meet you."],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "'Look forward to + -ing' is a positive closer.", zh: "'Look forward to meeting' (期待見面) 展現了積極的態度。" }
+        },
+        {
+            q: "The boss is asking for the file.",
+            options: ["Please submit it by 2 PM.", "Hand it in by 2 PM."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Submit' is appropriate for documents.", zh: "提交文件應使用 'Submit'，'Hand in' 比較像交功課的感覺。" }
+        },
+        {
+            q: "Are you interested in the new project?",
+            options: ["I am interested in joining the team.", "I am interesting to join the team."],
+            correct: 0,
+            cat: "Grammar",
+            exp: { en: "Feeling = Interested (ed); Object = Interesting (ing).", zh: "描述人的感受要用 -ed (Interested)，描述事物才用 -ing。" }
+        },
+        {
+            q: "Sorry for the late reply.",
+            options: ["Apologies for the delayed response.", "Sorry I was slow."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Delayed response' is the professional phrasing.", zh: "'Delayed response' 是遲回覆的標準商業用語，比 'Slow' 好。" }
+        },
+        {
+            q: "Can we talk briefly?",
+            options: ["Do you have a moment?", "Do you have time?"],
+            correct: 0,
+            cat: "Tone",
+            exp: { en: "'Do you have a moment' is polite and minimizes pressure.", zh: "'Do you have a moment?' (你有空嗎？) 暗示只會佔用很短時間，比較不給人壓力。" }
+        },
+        {
+            q: "I will help you.",
+            options: ["I will assist you with this matter.", "I will help you do this."],
+            correct: 0,
+            cat: "Vocabulary",
+            exp: { en: "'Assist' is a higher register word than 'help'.", zh: "'Assist' (協助) 的語氣比 'Help' (幫忙) 更正式且專業。" }
+        }
+    ];
 
-    function shuffle(a) { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+    // ============================================
+    // 2. Game Logic
+    // ============================================
+    
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let userResults = [];
 
-    function initGame() {
-        if(!questionPool || questionPool.length === 0) { alert("Error: Questions failed to load."); return; }
-        const shuffled = shuffle([...questionPool]);
-        gameQuestions = shuffled.slice(0, 10);
-        currentQIndex = 0; score = 0;
-        loadQuestion(0);
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
     }
 
-    function loadQuestion(index) {
-        if (index >= gameQuestions.length) { showResults(); return; }
-        const q = gameQuestions[index];
-        els.level.innerText = `${index + 1} / 10`;
-        els.progress.style.width = `${(index / 10) * 100}%`;
-        isWaiting = false;
-        setTimeout(() => { addMessage(q.customerMsg, 'customer'); genBtns(q); }, 400);
+    // 🆕 Triggered by "Start Shift" button
+    function startGame() {
+        // 1. Hide Start Screen
+        document.getElementById("startScreen").style.display = "none";
+        
+        // 2. Prepare Data
+        // Pick 6 from External
+        const setA = shuffle([...externalPool]).slice(0, 6).map(q => ({...q, scenario: "client"}));
+        // Pick 6 from Internal
+        const setB = shuffle([...internalPool]).slice(0, 6).map(q => ({...q, scenario: "colleague"}));
+
+        currentQuestions = [...setA, ...setB];
+        currentIndex = 0;
+        score = 0;
+        userResults = [];
+
+        // 3. Load First Question
+        loadQuestion();
     }
 
-    function genBtns(q) {
-        els.opts.innerHTML = '';
-        let answers = shuffle([...q.answers]);
-        answers.forEach(ans => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = ans.text;
-            btn.onclick = () => handleAnswer(ans, btn);
-            els.opts.appendChild(btn);
+    function loadQuestion() {
+        const qData = currentQuestions[currentIndex];
+        const isClient = qData.scenario === "client";
+
+        // Update Header
+        const avatar = document.getElementById("headerAvatar");
+        const name = document.getElementById("headerName");
+        const status = document.getElementById("headerStatus");
+        
+        if (isClient) {
+            avatar.className = "avatar client";
+            avatar.innerText = "S";
+            name.innerText = "Mr. Smith (Client)";
+            status.innerText = "Task 1: Handling Complaint";
+        } else {
+            avatar.className = "avatar colleague";
+            avatar.innerText = "C";
+            name.innerText = "Sarah (Colleague)";
+            status.innerText = "Task 2: Internal Update";
+        }
+
+        // Progress
+        document.getElementById("qLabel").innerText = `Question ${currentIndex + 1} of 12`;
+        const pct = ((currentIndex) / 12) * 100;
+        document.getElementById("progressFill").style.width = `${pct}%`;
+
+        // Chat Bubble Animation
+        const income = document.getElementById("incomingMsg");
+        const outcome = document.getElementById("outgoingMsg");
+        
+        income.style.display = "none";
+        outcome.style.display = "none";
+        
+        setTimeout(() => {
+            income.innerText = qData.q;
+            income.style.display = "block";
+        }, 300);
+
+        // Options
+        const optsDiv = document.getElementById("optionsArea");
+        optsDiv.innerHTML = "";
+        
+        qData.options.forEach((opt, idx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(idx);
+            optsDiv.appendChild(btn);
         });
+
+        // Hide Feedback
+        document.getElementById("feedbackModal").classList.remove("show");
     }
 
-    function addMessage(t, type) {
-        const d = document.createElement('div');
-        d.className = `message ${type}`;
-        d.innerHTML = t;
-        els.chat.appendChild(d);
-        els.chat.scrollTop = els.chat.scrollHeight;
-    }
-
-    function handleAnswer(ans, btn) {
-        if(isWaiting) return;
-        isWaiting = true;
-        addMessage(ans.text, 'you');
-        const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(b => {
-            b.disabled = true;
-            if(b === btn) {
-                b.style.border = ans.correct ? '2px solid #00ff88' : '2px solid #ff4444';
-                b.style.backgroundColor = ans.correct ? '#eafff5' : '#ffeaea';
-            }
-        });
-        if (ans.correct) score++;
-        showFeedback(ans.feedback, ans.correct);
-        setTimeout(() => { els.feedback.style.display = 'none'; currentQIndex++; loadQuestion(currentQIndex); }, 2500);
-    }
-
-    function showFeedback(t, g) {
-        els.fbIcon.innerText = g ? "✅ Correct!" : "❌ Oops!";
-        els.fbMsg.innerHTML = t;
-        els.feedback.style.display = 'block';
-        els.feedback.style.background = g ? 'rgba(0,160,80,0.95)' : 'rgba(220,50,50,0.95)';
-    }
-
-    function showResults() {
-        document.querySelector('.header').style.display = 'none';
-        document.querySelector('.controls').style.display = 'none';
-        els.chat.style.display = 'none';
-        els.feedback.style.display = 'none';
-        els.result.style.display = 'flex';
-        els.fScore.innerText = `${score} / 10`;
-        if (score === 10) { els.fTitle.innerText = "Excellent! 🌟"; els.fComment.innerText = "You mastered it!"; }
-        else if (score >= 7) { els.fTitle.innerText = "Good Job! 👍"; els.fComment.innerText = "You passed!"; }
-        else { els.fTitle.innerText = "Keep Practising 📚"; els.fComment.innerText = "Check the feedback carefully."; }
-    }
-
-    // Start
-    window.onload = initGame;
-} catch (e) {
-    alert("程式碼有錯，請檢查Copy是否有遺漏。\nError: " + e);
-}
-</script>
-</body>
-</html>
+    function checkAnswer(selectedIdx) {
+        const qData = currentQuestions[currentIndex];
+        const isCorrect = selectedIdx === qData.correct;
+        
+        // Show Reply
