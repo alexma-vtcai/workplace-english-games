@@ -66,65 +66,63 @@ async function analyzeText() {
         const btn = document.getElementById('sendBtn');
         const spinner = document.getElementById('spinner');
 
-        // Basic Checks
+        // 1. Basic Validation
         if (text.length < 5) { alert("Please write a bit more!"); return; }
         if (!API_KEY || API_KEY.length < 10) { alert("Teacher: API Key is missing."); return; }
 
+        // 2. Lock UI
         btn.disabled = true; 
-        btn.innerText = "Connecting..."; 
+        btn.innerText = "Connecting (Max 15s)..."; 
         spinner.style.display = "block";
 
         const scenarioData = scenarios[currentScenario];
+        const prompt = `Act as a supportive Vocational English Teacher. Scenario: ${scenarioData.aiPromptContext}. Student's Draft: "${text}". Provide feedback in Markdown: Score (out of 10), Good Points, Improvement Areas, and a Better Version.`;
 
-        const prompt = `
-            Act as a supportive Vocational English Teacher.
-            Scenario: ${scenarioData.aiPromptContext}
-            Student's Draft: "${text}"
-            
-            Provide feedback in Markdown:
-            1. **Score:** (Out of 10)
-            2. **Feedback:** (Tone, Grammar, Structure)
-            3. **Better Version:**
-        `;
+        // 設定 15 秒超時限制 (避免永遠 Loading)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
 
         try {
-            // ⬇️⬇️ 重點修改：改用 'gemini-pro' (最穩陣，一定有！) ⬇️⬇️
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`;
-            
-            const response = await fetch(url, {
+            // 3. API Call (嘗試用回最快的 1.5-flash，並加入 Signal 訊號)
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    // Gemini Pro 對安全設定既反應可能有少少唔同，照加無妨
-                    safetySettings: [
-                        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-                        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-                        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-                        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
-                    ]
-                })
+                    contents: [{ parts: [{ text: prompt }] }] 
+                    // 暫時移除 Safety Settings 以減少變數，確保最純粹的連接
+                }),
+                signal: controller.signal // 連結計時器
             });
+
+            clearTimeout(timeoutId); // 如果成功回來，取消計時
 
             const data = await response.json();
 
-            // Error Handling
-            if (data.error) {
-                console.error("API Error:", data.error);
-                throw new Error(data.error.message);
+            // 4. Error Diagnosis
+            if (!response.ok) {
+                console.error("Server Error:", data);
+                throw new Error(`Google Error (${response.status}): ${data.error?.message || response.statusText}`);
             }
 
             if (!data.candidates || !data.candidates[0]) {
-                throw new Error("AI Blocked the response (Safety Filter).");
+                throw new Error("AI completed the task but returned no text. (Try writing a longer email).");
             }
 
+            // 5. Success
             const output = data.candidates[0].content.parts[0].text;
             document.getElementById('aiOutput').innerHTML = marked.parse(output);
             document.getElementById('feedbackOverlay').style.display = "block";
 
         } catch (e) {
-            alert("Error: " + e.message);
+            // 6. Error Handling
+            if (e.name === 'AbortError') {
+                alert("⚠️ Timeout: Connection took too long (>15s).\n\nPossible causes:\n1. School Network/Wifi is slow.\n2. Firewall blocking Google.\n\nPlease try again on 4G/5G mobile network!");
+            } else {
+                alert("⚠️ Error: " + e.message + "\n\n(Check the F12 Console for Red Text!)");
+            }
+            console.error("Full Error:", e);
         } finally {
+            // 7. Reset UI
             btn.disabled = false; 
             btn.innerText = "Submit & Check"; 
             spinner.style.display = "none";
@@ -134,3 +132,4 @@ async function analyzeText() {
 </body>
 
 </html>
+
