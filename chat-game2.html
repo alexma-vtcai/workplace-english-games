@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <title>HKCV Mall - AI Writing Coach</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; display: flex; justify-content: center; height: 100vh; margin: 0; padding: 20px; }
+        .container { display: flex; width: 1000px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); height: 90vh; overflow: hidden; }
+        .left-panel { width: 35%; background: #f7f9fc; padding: 30px; border-right: 1px solid #ddd; }
+        .right-panel { width: 65%; padding: 30px; display: flex; flex-direction: column; position: relative; }
+        select, textarea { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 20px; font-family: inherit; }
+        textarea { flex: 1; resize: none; font-size: 16px; }
+        .btn { background: #0084ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; float: right; }
+        .btn:disabled { background: #ccc; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; padding: 40px; display: none; overflow-y: auto; }
+        .close-btn { position: absolute; top: 20px; right: 20px; background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="left-panel">
+        <h3>TASK SELECTOR:</h3>
+        <select id="scenarioSelector" onchange="updateScenario()">
+            <option value="0">Task 1: Late Delivery (Complaint)</option>
+            <option value="1">Task 2: Product Enquiry (Features)</option>
+        </select>
+        <div id="scenarioBox" style="background:white; padding:15px; border-radius:10px; border:1px solid #eee;">
+            <p><strong>From:</strong> Jason</p>
+            <p id="emailBody">Hi, where is my hairdryer? This is unacceptable!</p>
+        </div>
+    </div>
+
+    <div class="right-panel">
+        <h3>Your Reply:</h3>
+        <textarea id="studentInput" placeholder="Dear Jason..."></textarea>
+        <button class="btn" id="sendBtn" onclick="analyzeText()">Submit & Check</button>
+        
+        <div class="overlay" id="feedbackOverlay">
+            <button class="close-btn" onclick="document.getElementById('feedbackOverlay').style.display='none'">×</button>
+            <div id="aiOutput"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⬇️⬇️ 這裡是唯一要改的地方：貼上你的新 Key ⬇️⬇️
+    const API_KEY = "AIzaSyD7yMHF2TFf8LC2ykY5h2-Ra1sW5hl1Ef8"; 
+    // ⬆️⬆️ 記得保留雙引號 ⬆️⬆️
+
+    const scenarios = [
+        { body: "Hi, I ordered the Pina V34 hairdryer TWO weeks ago! It still hasn't arrived. I need it for my trip. This is unacceptable!", context: "Customer complains about late delivery." },
+        { body: "Hi, is the Bluetooth Speaker waterproof? Can I swim with it?", context: "Customer asks if speaker is waterproof." }
+    ];
+
+    function updateScenario() {
+        const index = document.getElementById('scenarioSelector').value;
+        document.getElementById('emailBody').innerText = scenarios[index].body;
+    }
+
+    async function analyzeText() {
+        const text = document.getElementById('studentInput').value.trim();
+        const btn = document.getElementById('sendBtn');
+        
+        if (text.length < 5) { alert("Please write more!"); return; }
+        if (!API_KEY || API_KEY.length < 10 || API_KEY.includes("PASTE")) { alert("Error: Please put the NEW API Key in the code."); return; }
+
+        btn.disabled = true; btn.innerText = "Marking...";
+
+        const prompt = `Act as a vocational English teacher. Review this email based on the context: "${scenarios[document.getElementById('scenarioSelector').value].context}". Student email: "${text}". Give score out of 10 and feedback.`;
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            const data = await response.json();
+            
+            if (data.error) throw new Error(data.error.message);
+            if (!data.candidates) throw new Error("Safety Block or No Response");
+
+            document.getElementById('aiOutput').innerHTML = marked.parse(data.candidates[0].content.parts[0].text);
+            document.getElementById('feedbackOverlay').style.display = "block";
+        } catch (e) {
+            alert("Error: " + e.message);
+        } finally {
+            btn.disabled = false; btn.innerText = "Submit & Check";
+        }
+    }
+</script>
+</body>
+</html>
