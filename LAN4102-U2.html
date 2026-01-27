@@ -12,6 +12,7 @@
             --error: #c0392b;
             --light: #ecf0f1;
             --dark: #2c3e50;
+            --warning-bg: #f9f9e0;
         }
         
         body {
@@ -49,7 +50,7 @@
             margin: 20px 0;
             height: 10px;
             overflow: hidden;
-            display: none; /* Hidden by default */
+            display: none;
         }
         .progress-bar {
             background-color: var(--accent);
@@ -135,30 +136,11 @@
         }
         .cat-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #2980b9; }
         .cat-btn:active { transform: translateY(2px); box-shadow: 0 0 0 #2980b9; }
+        .cat-btn:disabled { background: #bdc3c7; box-shadow: none; transform: none; cursor: default; }
 
         /* Game 3: Vocab */
         .vocab-container { margin-top: 20px; }
-        .vocab-question-card {
-            background: white;
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-        }
-        .vocab-text { font-size: 1.2em; margin-bottom: 15px; }
-        .vocab-options { display: flex; gap: 10px; flex-wrap: wrap; }
-        .vocab-opt-btn {
-            padding: 8px 16px;
-            border: 2px solid var(--accent);
-            background: white;
-            color: var(--accent);
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .vocab-opt-btn:hover { background: var(--accent); color: white; }
-        .vocab-opt-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
-
+        
         /* Results Section */
         #results-section { text-align: center; padding: 40px 20px; }
         .final-score { font-size: 4em; color: var(--accent); font-weight: bold; margin: 20px 0; }
@@ -181,19 +163,35 @@
         }
         .btn-action:hover { background: #219150; }
         
+        /* Feedback Box */
         .feedback {
-            margin-top: 15px;
-            padding: 15px;
+            margin-top: 20px;
+            padding: 20px;
             border-radius: 8px;
             text-align: center;
-            font-weight: bold;
             display: none;
+            border: 2px solid transparent;
         }
-        .feedback.correct { background: #d4edda; color: #155724; display: block; }
-        .feedback.incorrect { background: #f8d7da; color: #721c24; display: block; }
+        .feedback.correct { background: #d4edda; color: #155724; border-color: #c3e6cb; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        
+        .feedback h3 { margin: 0 0 10px 0; font-size: 1.2em; }
+        .feedback p { margin: 5px 0; }
+        .feedback .zh { color: #666; font-size: 0.95em; font-weight: normal; margin-top: 5px; display: block; }
 
         .game-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .counter { font-size: 1.2em; font-weight: bold; color: var(--primary); }
+        
+        .next-q-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
 
     </style>
 </head>
@@ -221,14 +219,17 @@
         <ul class="sortable-list" id="sortable-list">
             </ul>
         <button class="btn-action" onclick="checkOrder()">Check Order</button>
-        <div id="feedback1" class="feedback"></div>
+        <div id="feedback1" class="feedback">
+            <h3 id="fb1-title"></h3>
+            <p id="fb1-text"></p>
+        </div>
         <button id="btn-next-2" class="btn-action" style="display:none; background:var(--accent);" onclick="showGame('game2')">Next Game &rarr;</button>
     </div>
 
     <div id="game2" class="game-section">
         <div class="game-header">
             <h2>Game 2: Where does it belong?</h2>
-            <div class="counter">Question: <span id="q-counter-2">1</span>/15</div>
+            <div class="counter">Question: <span id="q-counter-2">1</span>/7</div>
         </div>
         <div class="progress-container" style="display:block;">
             <div id="progress-2" class="progress-bar"></div>
@@ -237,19 +238,24 @@
         
         <div class="snippet-card" id="snippet-display">Loading...</div>
 
-        <div class="category-buttons">
+        <div class="category-buttons" id="cat-btns-container">
             <button class="cat-btn" onclick="handleCategoryInput('Profile')">Job Objective / Profile</button>
             <button class="cat-btn" onclick="handleCategoryInput('Education')">Education</button>
             <button class="cat-btn" onclick="handleCategoryInput('Experience')">Work Experience</button>
             <button class="cat-btn" onclick="handleCategoryInput('Skills')">Skills / Languages</button>
         </div>
-        <div id="feedback2" class="feedback"></div>
+        
+        <div id="feedback2" class="feedback">
+            <h3 id="fb2-title"></h3>
+            <div id="fb2-content"></div>
+            <button class="next-q-btn" onclick="nextQuestionG2()">Next Question &rarr;</button>
+        </div>
     </div>
 
     <div id="game3" class="game-section">
         <div class="game-header">
             <h2>Game 3: Power Verbs</h2>
-            <div class="counter">Question: <span id="q-counter-3">1</span>/15</div>
+            <div class="counter">Question: <span id="q-counter-3">1</span>/7</div>
         </div>
         <div class="progress-container" style="display:block;">
             <div id="progress-3" class="progress-bar"></div>
@@ -261,12 +267,17 @@
         
         <div id="vocab-options" class="category-buttons">
             </div>
-        <div id="feedback3" class="feedback"></div>
+        
+        <div id="feedback3" class="feedback">
+            <h3 id="fb3-title"></h3>
+            <div id="fb3-content"></div>
+            <button class="next-q-btn" onclick="nextQuestionG3()">Next Question &rarr;</button>
+        </div>
     </div>
 
     <div id="results-section" class="game-section">
         <h2>Module Complete!</h2>
-        <p>Here is your total performance across all three activities.</p>
+        <p>Here is your total performance.</p>
         
         <div class="final-score" id="total-score-display">0%</div>
         
@@ -277,21 +288,22 @@
             </div>
             <div class="breakdown-row">
                 <span>Game 2 (Categories):</span>
-                <span id="score-g2">0/15</span>
+                <span id="score-g2">0/7</span>
             </div>
             <div class="breakdown-row">
                 <span>Game 3 (Action Verbs):</span>
-                <span id="score-g3">0/15</span>
+                <span id="score-g3">0/7</span>
             </div>
         </div>
 
-        <button class="btn-action" style="background: var(--accent);" onclick="location.reload()">Try Again</button>
+        <button class="btn-action" style="background: var(--accent);" onclick="location.reload()">Try Again (New Questions)</button>
     </div>
 
 </div>
 
 <script>
     // --- DATA ---
+    const TOTAL_TEST_ITEMS = 7; // User requested 7 questions per session
     
     // Game 1 Data
     const resumeStructure = [
@@ -303,280 +315,49 @@
         { text: "References" }
     ];
 
-    // Game 2 Data (15 items)
+    // Game 2 Data (20 items in database)
+    // Format: { text, category, reason_en, reason_zh }
     const rawSnippets = [
-        { text: "Resourceful, proactive final-year Higher Diploma student.", category: "Profile" },
-        { text: "Seeking an entry-level position to apply my knowledge of child development.", category: "Profile" },
-        { text: "Detail-minded student with professional training in Inclusive Education.", category: "Profile" },
-        { text: "Assisted customers in finding products and answering enquiries.", category: "Experience" },
-        { text: "Maintained a clean and organised store environment.", category: "Experience" },
-        { text: "Supported Senior Project Officers in collecting data.", category: "Experience" },
-        { text: "Provided logistics support to project teams.", category: "Experience" },
-        { text: "Identified and recommended products that met customers' needs.", category: "Experience" },
-        { text: "Supported the Store Manager in managing inventory.", category: "Experience" },
-        { text: "Festival Ambassador (Volunteer) for Sai Kung Arts Festival.", category: "Experience" },
-        { text: "Hong Kong Institute of Vocational Education (Sha Tin)", category: "Education" },
-        { text: "Higher Diploma in Social Work (2022 - Present)", category: "Education" },
-        { text: "Hong Kong Diploma of Secondary Education (2022)", category: "Education" },
-        { text: "Completed comprehensive training in social policies.", category: "Education" },
-        { text: "Proficient in MS Word, PowerPoint, and Excel.", category: "Skills" },
-        { text: "Cantonese (native), Putonghua (fluent), English (conversational).", category: "Skills" }
+        { text: "Resourceful, proactive final-year Higher Diploma student.", category: "Profile", reason_en: "This describes the candidate's personality and status.", reason_zh: "這描述了求職者的個性和身份（個人簡介）。" },
+        { text: "Seeking an entry-level position to apply my knowledge.", category: "Profile", reason_en: "This states the candidate's goal (Objective).", reason_zh: "這說明了求職者的目標（求職目標）。" },
+        { text: "Detail-minded student with professional training in Inclusive Education.", category: "Profile", reason_en: "This is a summary of personal attributes and training.", reason_zh: "這是個人特質和受訓背景的摘要。" },
+        { text: "Assisted customers in finding products and answering enquiries.", category: "Experience", reason_en: "This is a duty performed in a past job.", reason_zh: "這是過去工作中執行的職責。" },
+        { text: "Maintained a clean and organised store environment.", category: "Experience", reason_en: "This is a specific task done at work.", reason_zh: "這是在工作中執行的具體任務。" },
+        { text: "Supported Senior Project Officers in collecting data.", category: "Experience", reason_en: "This describes a role in a previous project.", reason_zh: "這描述了在之前項目中的角色。" },
+        { text: "Provided logistics support to project teams.", category: "Experience", reason_en: "This is an action verb describing work history.", reason_zh: "這是一個描述工作履歷的行為動詞。" },
+        { text: "Identified and recommended products that met customers' needs.", category: "Experience", reason_en: "This is a specific achievement/duty in a job.", reason_zh: "這是在工作中的具體成就或職責。" },
+        { text: "Supported the Store Manager in managing inventory.", category: "Experience", reason_en: "This describes who you worked with and what you did.", reason_zh: "這描述了你與誰共事以及你做了什麼。" },
+        { text: "Festival Ambassador (Volunteer) for Sai Kung Arts Festival.", category: "Experience", reason_en: "Volunteer work is counted as experience.", reason_zh: "義工服務也算作工作經驗。" },
+        { text: "Hong Kong Institute of Vocational Education (Sha Tin)", category: "Education", reason_en: "This is the name of a school/institution.", reason_zh: "這是學校或機構的名稱。" },
+        { text: "Higher Diploma in Social Work (2022 - Present)", category: "Education", reason_en: "This is an academic qualification/degree.", reason_zh: "這是一個學歷資格或學位。" },
+        { text: "Hong Kong Diploma of Secondary Education (2022)", category: "Education", reason_en: "This is a secondary school qualification.", reason_zh: "這是中學學歷資格。" },
+        { text: "Completed comprehensive training in social policies.", category: "Education", reason_en: "This describes what was learned during studies.", reason_zh: "這描述了在學習期間所受的訓練。" },
+        { text: "Proficient in MS Word, PowerPoint, and Excel.", category: "Skills", reason_en: "These are computer/software skills.", reason_zh: "這些是電腦或軟件技能。" },
+        { text: "Cantonese (native), Putonghua (fluent), English (conversational).", category: "Skills", reason_en: "These are language abilities.", reason_zh: "這些是語言能力。" },
+        { text: "Completed a group project on health and service.", category: "Education", reason_en: "Academic projects belong under Education.", reason_zh: "學術專題研習屬於學歷部分。" },
+        { text: "Achieved Level 3 in Chinese Language.", category: "Education", reason_en: "This is an exam result derived from school.", reason_zh: "這是學校的考試成績。" },
+        { text: "Assisted the artists and event organiser in setting up.", category: "Experience", reason_en: "This is a task performed during volunteer work.", reason_zh: "這是在義工服務期間執行的任務。" },
+        { text: "Strategies to support children with diverse needs.", category: "Education", reason_en: "This is a topic studied at school.", reason_zh: "這是由學校修讀的課題。" }
     ];
 
-    // Game 3 Data (15 items)
+    // Game 3 Data (20 items in database)
     const rawVocab = [
-        { q: "______ customers in finding products.", a: "Assisted", opts: ["Assisted", "Watched", "Saw", "Did"] },
-        { q: "______ a clean and organised store environment.", a: "Maintained", opts: ["Maintained", "Kept", "Stayed", "Held"] },
-        { q: "______ logistics support to project teams.", a: "Provided", opts: ["Provided", "Gave", "Handed", "Took"] },
-        { q: "______ products that met customers' needs.", a: "Recommended", opts: ["Recommended", "Spoke", "Told", "Said"] },
-        { q: "______ comprehensive training in social work.", a: "Completed", opts: ["Completed", "Ended", "Finished", "Stopped"] },
-        { q: "______ practical experience through fieldwork.", a: "Gained", opts: ["Gained", "Took", "Found", "Made"] },
-        { q: "______ strong analytical and communication skills.", a: "Developed", opts: ["Developed", "Grew", "Built", "Made"] },
-        { q: "______ me with interpersonal skills.", a: "Equipped", opts: ["Equipped", "Gave", "Helped", "Tool"] },
-        { q: "______ Level 3 in Chinese Language.", a: "Achieved", opts: ["Achieved", "Got", "Won", "Took"] },
-        { q: "______ an entry-level position.", a: "Seeking", opts: ["Seeking", "Looking", "Wanting", "Hoping"] },
-        { q: "______ data on low-income residents.", a: "Collected", opts: ["Collected", "Gathered", "Got", "Took"] },
-        { q: "______ presentations on projects.", a: "Prepared", opts: ["Prepared", "Made", "Did", "Wrote"] },
-        { q: "______ inventory levels.", a: "Managed", opts: ["Managed", "Watched", "Looked", "Saw"] },
-        { q: "______ enquiries from customers.", a: "Answered", opts: ["Answered", "Replied", "Talked", "Said"] },
-        { q: "______ the setup of the festival.", a: "Supported", opts: ["Supported", "Helped", "Aided", "Did"] }
-    ];
-
-    // --- STATE ---
-    let state = {
-        g1: { moves: 0, completed: false, score: 0 },
-        g2: { queue: [], currentIdx: 0, score: 0 },
-        g3: { queue: [], currentIdx: 0, score: 0 }
-    };
-
-    // --- UTILS ---
-    function shuffle(array) {
-        return array.sort(() => Math.random() - 0.5);
-    }
-
-    function showGame(gameId) {
-        // Hide all
-        document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        
-        // Show specific
-        document.getElementById(gameId).classList.add('active');
-        
-        // Update nav button
-        if(gameId === 'game1') document.getElementById('btn-tab-1').classList.add('active');
-        if(gameId === 'game2') document.getElementById('btn-tab-2').classList.add('active');
-        if(gameId === 'game3') document.getElementById('btn-tab-3').classList.add('active');
-    }
-
-    // --- GAME 1: ORDER ---
-    let dragStartIndex;
-    
-    function initGame1() {
-        const list = document.getElementById('sortable-list');
-        list.innerHTML = '';
-        const shuffled = shuffle([...resumeStructure]);
-        
-        shuffled.forEach((item, index) => {
-            const li = document.createElement('li');
-            li.setAttribute('data-index', index);
-            li.setAttribute('draggable', 'true');
-            li.classList.add('sortable-item');
-            li.innerHTML = `<span>:: ${item.text}</span>`;
-            list.appendChild(li);
-            
-            li.addEventListener('dragstart', function() { dragStartIndex = +this.getAttribute('data-index'); });
-            li.addEventListener('dragover', e => e.preventDefault());
-            li.addEventListener('drop', function() {
-                const dragEndIndex = +this.getAttribute('data-index');
-                swapItems(dragStartIndex, dragEndIndex);
-                state.g1.moves++;
-                document.getElementById('moves').innerText = state.g1.moves;
-            });
-            li.addEventListener('dragenter', function() { this.classList.add('over'); });
-            li.addEventListener('dragleave', function() { this.classList.remove('over'); });
-        });
-    }
-
-    function swapItems(fromIndex, toIndex) {
-        const items = document.querySelectorAll('.sortable-item');
-        const itemOne = items[fromIndex].querySelector('span');
-        const itemTwo = items[toIndex].querySelector('span');
-        const temp = itemOne.innerText;
-        itemOne.innerText = itemTwo.innerText;
-        itemTwo.innerText = temp;
-    }
-
-    function checkOrder() {
-        const current = [];
-        document.querySelectorAll('.sortable-item span').forEach(s => current.push(s.innerText.replace(':: ', '')));
-        const correct = resumeStructure.map(s => s.text);
-        
-        const fb = document.getElementById('feedback1');
-        if (JSON.stringify(current) === JSON.stringify(correct)) {
-            fb.className = "feedback correct";
-            fb.innerText = "Correct! You have the perfect resume structure.";
-            state.g1.completed = true;
-            state.g1.score = 100; // Binary score for G1
-            document.getElementById('btn-next-2').style.display = 'block';
-        } else {
-            fb.className = "feedback incorrect";
-            fb.innerText = "Not quite. Hints: Contact goes first, References go last.";
-        }
-    }
-
-    // --- GAME 2: CATEGORIES ---
-    function initGame2() {
-        // Select 15 items randomly (or just shuffle all 15 if that's the full set)
-        state.g2.queue = shuffle([...rawSnippets]).slice(0, 15);
-        state.g2.currentIdx = 0;
-        state.g2.score = 0;
-        loadG2Item();
-    }
-
-    function loadG2Item() {
-        if (state.g2.currentIdx >= 15) {
-            endGame2();
-            return;
-        }
-        
-        const item = state.g2.queue[state.g2.currentIdx];
-        document.getElementById('snippet-display').innerText = `"${item.text}"`;
-        document.getElementById('q-counter-2').innerText = state.g2.currentIdx + 1;
-        document.getElementById('feedback2').style.display = 'none';
-        
-        // Update bar
-        const pct = ((state.g2.currentIdx) / 15) * 100;
-        document.getElementById('progress-2').style.width = pct + "%";
-        
-        // Re-enable buttons
-        document.querySelectorAll('#game2 .cat-btn').forEach(b => b.disabled = false);
-    }
-
-    function handleCategoryInput(selection) {
-        const item = state.g2.queue[state.g2.currentIdx];
-        const fb = document.getElementById('feedback2');
-        const btns = document.querySelectorAll('#game2 .cat-btn');
-        
-        btns.forEach(b => b.disabled = true); // Prevent double click
-
-        if (selection === item.category || (item.category === 'Skills' && selection === 'Skills')) {
-            fb.className = "feedback correct";
-            fb.innerText = "Correct!";
-            state.g2.score++;
-        } else {
-            fb.className = "feedback incorrect";
-            fb.innerText = `Incorrect. That was a ${item.category} item.`;
-        }
-        
-        state.g2.currentIdx++;
-        setTimeout(loadG2Item, 1200);
-    }
-
-    function endGame2() {
-        document.getElementById('snippet-display').innerHTML = "<b>Section Complete!</b>";
-        document.getElementById('progress-2').style.width = "100%";
-        document.querySelector('#game2 .category-buttons').style.display = 'none';
-        document.getElementById('feedback2').style.display = 'none';
-        
-        const nextBtn = document.createElement('button');
-        nextBtn.className = 'btn-action';
-        nextBtn.style.background = 'var(--accent)';
-        nextBtn.innerText = "Proceed to Game 3";
-        nextBtn.onclick = () => showGame('game3');
-        document.getElementById('game2').appendChild(nextBtn);
-    }
-
-    // --- GAME 3: VOCAB ---
-    function initGame3() {
-        state.g3.queue = shuffle([...rawVocab]).slice(0, 15);
-        state.g3.currentIdx = 0;
-        state.g3.score = 0;
-        loadG3Item();
-    }
-
-    function loadG3Item() {
-        if (state.g3.currentIdx >= 15) {
-            endGame3();
-            return;
-        }
-
-        const item = state.g3.queue[state.g3.currentIdx];
-        document.getElementById('vocab-display').innerText = item.q;
-        document.getElementById('q-counter-3').innerText = state.g3.currentIdx + 1;
-        document.getElementById('feedback3').style.display = 'none';
-        
-        const pct = ((state.g3.currentIdx) / 15) * 100;
-        document.getElementById('progress-3').style.width = pct + "%";
-
-        // Shuffle options
-        const opts = shuffle([...item.opts]);
-        const optContainer = document.getElementById('vocab-options');
-        optContainer.innerHTML = '';
-        
-        opts.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'cat-btn';
-            btn.innerText = opt;
-            btn.onclick = () => handleVocabInput(opt, item.a);
-            optContainer.appendChild(btn);
-        });
-    }
-
-    function handleVocabInput(selected, correct) {
-        const fb = document.getElementById('feedback3');
-        const btns = document.querySelectorAll('#vocab-options button');
-        btns.forEach(b => b.disabled = true);
-
-        if (selected === correct) {
-            fb.className = "feedback correct";
-            fb.innerText = "Correct!";
-            state.g3.score++;
-        } else {
-            fb.className = "feedback incorrect";
-            fb.innerText = `Incorrect. The best word is "${correct}".`;
-        }
-
-        state.g3.currentIdx++;
-        setTimeout(loadG3Item, 1200);
-    }
-
-    function endGame3() {
-        showResults();
-    }
-
-    // --- RESULTS ---
-    function showResults() {
-        document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
-        document.getElementById('results-section').classList.add('active');
-
-        // G1 Score
-        const g1Text = state.g1.completed ? "Pass" : "Incomplete";
-        document.getElementById('score-g1').innerText = g1Text;
-        document.getElementById('score-g1').style.color = state.g1.completed ? "green" : "red";
-
-        // G2 Score
-        document.getElementById('score-g2').innerText = `${state.g2.score} / 15`;
-
-        // G3 Score
-        document.getElementById('score-g3').innerText = `${state.g3.score} / 15`;
-
-        // Total Calc
-        // Logic: G1 is worth 10pts, G2 45pts (3pts each), G3 45pts (3pts each) -> Total 100
-        let total = 0;
-        if(state.g1.completed) total += 10;
-        total += (state.g2.score / 15) * 45;
-        total += (state.g3.score / 15) * 45;
-        
-        document.getElementById('total-score-display').innerText = Math.round(total) + "%";
-    }
-
-    // --- INIT ---
-    initGame1();
-    initGame2();
-    initGame3();
-
-</script>
-
-</body>
-</html>
+        { q: "______ customers in finding products.", a: "Assisted", opts: ["Assisted", "Watched", "Saw", "Did"], reason_en: "'Assisted' is professional; 'Did' or 'Saw' is too casual.", reason_zh: "「Assisted」較專業；「Did」或「Saw」太隨意。" },
+        { q: "______ a clean and organised store environment.", a: "Maintained", opts: ["Maintained", "Kept", "Stayed", "Held"], reason_en: "'Maintained' implies keeping something in good condition.", reason_zh: "「Maintained」意味著保持良好的狀態。" },
+        { q: "______ logistics support to project teams.", a: "Provided", opts: ["Provided", "Gave", "Handed", "Took"], reason_en: "'Provided' is the standard business term for giving support.", reason_zh: "「Provided」是提供支援的標準商業用語。" },
+        { q: "______ products that met customers' needs.", a: "Recommended", opts: ["Recommended", "Spoke", "Told", "Said"], reason_en: "You 'recommend' products; you don't just 'say' them.", reason_zh: "你會「推薦」產品，而不只是「說」產品。" },
+        { q: "______ comprehensive training in social work.", a: "Completed", opts: ["Completed", "Ended", "Finished", "Stopped"], reason_en: "'Completed' suggests successfully finishing a formal course.", reason_zh: "「Completed」暗示成功完成正式課程。" },
+        { q: "______ practical experience through fieldwork.", a: "Gained", opts: ["Gained", "Took", "Found", "Made"], reason_en: "We 'gain' experience.", reason_zh: "我們會「獲得（Gain）」經驗。" },
+        { q: "______ strong analytical and communication skills.", a: "Developed", opts: ["Developed", "Grew", "Built", "Made"], reason_en: "Skills are 'developed' over time.", reason_zh: "技能是隨著時間「發展（Developed）」出來的。" },
+        { q: "______ me with interpersonal skills.", a: "Equipped", opts: ["Equipped", "Gave", "Helped", "Tool"], reason_en: "'Equipped' means to provide with necessary skills.", reason_zh: "「Equipped」意指裝備了必要的技能。" },
+        { q: "______ Level 3 in Chinese Language.", a: "Achieved", opts: ["Achieved", "Got", "Won", "Took"], reason_en: "'Achieved' is better for grades than 'Got'.", reason_zh: "對於成績，「Achieved」比「Got」更好。" },
+        { q: "______ an entry-level position.", a: "Seeking", opts: ["Seeking", "Looking", "Wanting", "Hoping"], reason_en: "'Seeking' is formal for looking for a job.", reason_zh: "「Seeking」是尋找工作的正式用語。" },
+        { q: "______ data on low-income residents.", a: "Collected", opts: ["Collected", "Gathered", "Got", "Took"], reason_en: "Data is usually 'collected'.", reason_zh: "數據通常是被「收集（Collected）」的。" },
+        { q: "______ presentations on projects.", a: "Prepared", opts: ["Prepared", "Made", "Did", "Wrote"], reason_en: "We 'prepare' presentations professionally.", reason_zh: "我們會專業地「準備（Prepare）」簡報。" },
+        { q: "______ inventory levels.", a: "Managed", opts: ["Managed", "Watched", "Looked", "Saw"], reason_en: "'Managed' implies responsibility and control.", reason_zh: "「Managed」意味著責任和控制。" },
+        { q: "______ enquiries from customers.", a: "Answered", opts: ["Answered", "Replied", "Talked", "Said"], reason_en: "We 'answer' enquiries (questions).", reason_zh: "我們會「回答（Answer）」查詢。" },
+        { q: "______ the setup of the festival.", a: "Supported", opts: ["Supported", "Helped", "Aided", "Did"], reason_en: "'Supported' is a strong team-player verb.", reason_zh: "「Supported」是一個強烈的團隊合作動詞。" },
+        { q: "______ the accurate stock levels of products.", a: "Ensuring", opts: ["Ensuring", "Watching", "Seeing", "Looking"], reason_en: "'Ensuring' means making sure something is correct.", reason_zh: "「Ensuring」意味著確保某事是正確的。" },
+        { q: "______ effectively with a diverse range of people.", a: "Communicate", opts: ["Communicate", "Talk", "Say", "Speak"], reason_en: "'Communicate' covers speaking, listening, and understanding.", reason_zh: "「Communicate」涵蓋了說話、聆聽和理解。" },
+        { q: "______ on social policy and community research.", a: "Focusing", opts: ["Focusing", "Looking", "Pointing", "Seeing"], reason_en: "'Focusing on' means to give attention to a specific area.", reason_zh: "「Focusing on」意味著專注於特定領域。" },
+        { q: "Seeking a position to ______ my skills and knowledge.", a: "Apply", opts: ["Apply", "Use", "Do", "Make"], reason_en: "'Apply' is the standard term for using skills in a job.", reason
