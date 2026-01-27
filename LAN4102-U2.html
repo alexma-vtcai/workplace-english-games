@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAN410: Workplace English - Resume Skills Games</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #3498db;
+            --success: #27ae60;
+            --error: #c0392b;
+            --light: #ecf0f1;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--light);
+            padding-bottom: 20px;
+        }
+
+        h1 { color: var(--primary); margin: 0; }
+        p.subtitle { color: #7f8c8d; margin-top: 5px; }
+
+        /* Navigation */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nav-btn {
+            background: var(--light);
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            color: var(--primary);
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Game Sections */
+        .game-section {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        .game-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Game 1: Sorter */
+        .sortable-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .sortable-item {
+            background: white;
+            border: 2px solid var(--light);
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: grab;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sortable-item:active { cursor: grabbing; border-color: var(--accent); }
+        .drop-zone { border: 2px dashed #bdc3c7; height: 50px; margin-bottom: 10px; border-radius: 8px; display: none; }
+        .drop-zone.visible { display: block; }
+
+        /* Game 2: Categorizer */
+        .snippet-card {
+            background: #fff;
+            border: 2px solid var(--primary);
+            padding: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .category-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .cat-btn {
+            padding: 15px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: transform 0.1s;
+        }
+        .cat-btn:hover { background: #2980b9; transform: translateY(-2px); }
+
+        /* Game 3: Vocab */
+        .vocab-grid {
+            display: grid;
+            gap: 15px;
+        }
+        .vocab-question { margin-bottom: 15px; font-weight: bold; }
+
+        /* General UI */
+        .btn-check {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: var(--success);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+        .feedback.correct { background: #d4edda; color: #155724; display: block; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; display: block; }
+
+        .score-board {
+            text-align: right;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>LAN410: Interactive Games</h1>
+        <p class="subtitle">Module: Resume Writing & Job Applications</p>
+    </header>
+
+    <div class="nav-tabs">
+        <button class="nav-btn active" onclick="showGame('game1')">1. Resume Structure</button>
+        <button class="nav-btn" onclick="showGame('game2')">2. Sort the Content</button>
+        <button class="nav-btn" onclick="showGame('game3')">3. Action Verbs</button>
+    </div>
+
+    <div id="game1" class="game-section active">
+        <h2>Game 1: The Logical Order</h2>
+        <p>Drag and drop the resume sections into the standard reverse-chronological order used in Hong Kong vocational resumes.</p>
+        <div class="score-board">Moves: <span id="moves">0</span></div>
+        
+        <ul class="sortable-list" id="sortable-list">
+            </ul>
+        <button class="btn-check" onclick="checkOrder()">Check Order</button>
+        <div id="feedback1" class="feedback"></div>
+    </div>
+
+    <div id="game2" class="game-section">
+        <h2>Game 2: Where does it belong?</h2>
+        <p>Read the snippet from <b>Keith Lo</b> or <b>May Wong's</b> resumes and decide which section it belongs to.</p>
+        <div class="score-board">Score: <span id="score2">0</span>/5</div>
+        
+        <div class="snippet-card" id="snippet-display">
+            Loading...
+        </div>
+
+        <div class="category-buttons">
+            <button class="cat-btn" onclick="checkCategory('Profile')">Job Objective / Profile</button>
+            <button class="cat-btn" onclick="checkCategory('Education')">Education</button>
+            <button class="cat-btn" onclick="checkCategory('Experience')">Work Experience</button>
+            <button class="cat-btn" onclick="checkCategory('Skills')">Skills / Languages</button>
+        </div>
+        <div id="feedback2" class="feedback"></div>
+    </div>
+
+    <div id="game3" class="game-section">
+        <h2>Game 3: Power Verbs</h2>
+        <p>Select the correct action verb to complete the sentences found in the teaching notes.</p>
+        
+        <div id="quiz-container">
+            </div>
+        <div id="feedback3" class="feedback"></div>
+    </div>
+
+</div>
+
+<script>
+    // --- SHARED DATA (Based on uploaded files) ---
+    const resumeSections = [
+        { id: 1, text: "Contact Information (Header)" },
+        { id: 2, text: "Job Objective / Personal Profile" },
+        { id: 3, text: "Education" },
+        { id: 4, text: "Work Experience" },
+        { id: 5, text: "Skills & Languages" },
+        { id: 6, text: "References" }
+    ];
+
+    const snippets = [
+        { text: "Resourceful, proactive final-year Higher Diploma student in Social Work.", category: "Profile" },
+        { text: "Assisted customers in finding products and answering enquiries.", category: "Experience" },
+        { text: "Hong Kong Institute of Vocational Education (Sha Tin)", category: "Education" },
+        { text: "MS Word, MS PowerPoint, MS Excel", category: "Skills" },
+        { text: "Supported Senior Project Officers in collecting data.", category: "Experience" }
+    ];
+
+    const vocabQuestions = [
+        { 
+            q: "______ a clean and organised store environment.", 
+            options: ["Maintained", "Watched", "Did", "Cleaned"], 
+            answer: "Maintained" 
+        },
+        { 
+            q: "______ logistics support to project teams.", 
+            options: ["Gave", "Provided", "Made", "Handed"], 
+            answer: "Provided" 
+        },
+        { 
+            q: "______ comprehensive training in early childhood education.", 
+            options: ["Finished", "Ended", "Completed", "Done"], 
+            answer: "Completed" 
+        },
+        { 
+            q: "______ customers' needs for various outdoor activities.", 
+            options: ["Identified", "Looked at", "Saw", "Guessed"], 
+            answer: "Identified" 
+        }
+    ];
+
+    // --- NAVIGATION ---
+    function showGame(gameId) {
+        document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(gameId).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    // --- GAME 1 LOGIC (Drag & Drop) ---
+    let dragStartIndex;
+    const listElement = document.getElementById('sortable-list');
+    let listItems = []; // To store current order
+
+    function initGame1() {
+        // Shuffle slightly for the game
+        const shuffled = [...resumeSections].sort(() => Math.random() - 0.5);
+        
+        listElement.innerHTML = '';
+        shuffled.forEach((section, index) => {
+            const li = document.createElement('li');
+            li.setAttribute('data-index', index);
+            li.setAttribute('draggable', 'true');
+            li.classList.add('sortable-item');
+            li.innerHTML = `
+                <span>:: ${section.text}</span>
+            `;
+            listItems.push(li);
+            listElement.appendChild(li);
+            
+            li.addEventListener('dragstart', dragStart);
+            li.addEventListener('dragover', dragOver);
+            li.addEventListener('drop', dragDrop);
+            li.addEventListener('dragenter', dragEnter);
+            li.addEventListener('dragleave', dragLeave);
+        });
+    }
+
+    function dragStart() { dragStartIndex = +this.closest('li').getAttribute('data-index'); }
+    function dragOver(e) { e.preventDefault(); }
+    function dragEnter() { this.classList.add('over'); }
+    function dragLeave() { this.classList.remove('over'); }
+    function dragDrop() {
+        const dragEndIndex = +this.getAttribute('data-index');
+        swapItems(dragStartIndex, dragEndIndex);
+        this.classList.remove('over');
+        
+        // Update move counter
+        let moves = document.getElementById('moves');
+        moves.innerText = parseInt(moves.innerText) + 1;
+    }
+
+    function swapItems(fromIndex, toIndex) {
+        const itemOne = listItems[fromIndex].querySelector('span');
+        const itemTwo = listItems[toIndex].querySelector('span');
+        
+        const temp = itemOne.innerText;
+        itemOne.innerText = itemTwo.innerText;
+        itemTwo.innerText = temp;
+    }
+
+    function checkOrder() {
+        const currentOrder = [];
+        listElement.querySelectorAll('li span').forEach(span => {
+            currentOrder.push(span.innerText.replace(':: ', ''));
+        });
+
+        const correctOrder = resumeSections.map(s => s.text);
+        const isCorrect = JSON.stringify(currentOrder) === JSON.stringify(correctOrder);
+        
+        const fb = document.getElementById('feedback1');
+        if(isCorrect) {
+            fb.className = "feedback correct";
+            fb.innerText = "Excellent! That is the correct standard structure.";
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerText = "Not quite. Remember: Contact first, Profile next, then Education/Experience (recent first).";
+        }
+    }
+
+    // --- GAME 2 LOGIC (Categorizer) ---
+    let currentSnippetIndex = 0;
+    let score2 = 0;
+
+    function initGame2() {
+        loadSnippet();
+    }
+
+    function loadSnippet() {
+        if(currentSnippetIndex < snippets.length) {
+            document.getElementById('snippet-display').innerText = `"${snippets[currentSnippetIndex].text}"`;
+            document.getElementById('feedback2').style.display = 'none';
+        } else {
+            document.getElementById('snippet-display').innerText = "Game Over! You finished all cards.";
+            document.querySelector('.category-buttons').style.display = 'none';
+        }
+    }
+
+    function checkCategory(selectedCategory) {
+        const correctCategory = snippets[currentSnippetIndex].category;
+        const fb = document.getElementById('feedback2');
+        
+        if (selectedCategory === correctCategory) {
+            fb.className = "feedback correct";
+            fb.innerText = "Correct!";
+            score2++;
+            document.getElementById('score2').innerText = score2;
+            currentSnippetIndex++;
+            setTimeout(loadSnippet, 1000);
+        } else {
+            fb.className = "feedback incorrect";
+            fb.innerText = `Incorrect. That belongs in ${correctCategory}.`;
+        }
+    }
+
+    // --- GAME 3 LOGIC (Vocab Quiz) ---
+    function initGame3() {
+        const container = document.getElementById('quiz-container');
+        vocabQuestions.forEach((q, index) => {
+            const div = document.createElement('div');
+            div.className = 'snippet-card';
+            div.style.flexDirection = 'column';
+            div.style.alignItems = 'flex-start';
+            
+            let html = `<div class="vocab-question">${index + 1}. ${q.q}</div><div style="display:flex; gap:10px; flex-wrap:wrap;">`;
+            
+            q.options.forEach(opt => {
+                html += `<button class="nav-btn" onclick="checkVocab(this, '${opt}', '${q.answer}')">${opt}</button>`;
+            });
+            
+            html += `</div><div class="msg" style="margin-top:10px; font-weight:bold;"></div>`;
+            div.innerHTML = html;
+            container.appendChild(div);
+        });
+    }
+
+    function checkVocab(btn, selected, correct) {
+        const msgDiv = btn.parentElement.nextElementSibling;
+        const allBtns = btn.parentElement.querySelectorAll('button');
+        
+        // Disable buttons after selection
+        allBtns.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            btn.style.backgroundColor = 'var(--success)';
+            btn.style.color = 'white';
+            msgDiv.style.color = 'var(--success)';
+            msgDiv.innerText = "Correct! This is a strong action verb.";
+        } else {
+            btn.style.backgroundColor = 'var(--error)';
+            btn.style.color = 'white';
+            msgDiv.style.color = 'var(--error)';
+            msgDiv.innerText = `Try again. The best word was: ${correct}`;
+        }
+    }
+
+    // Initialize all
+    initGame1();
+    initGame2();
+    initGame3();
+
+</script>
+
+</body>
+</html>
