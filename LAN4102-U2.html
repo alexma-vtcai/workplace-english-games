@@ -360,4 +360,289 @@
         { q: "______ the accurate stock levels of products.", a: "Ensuring", opts: ["Ensuring", "Watching", "Seeing", "Looking"], reason_en: "'Ensuring' means making sure something is correct.", reason_zh: "「Ensuring」意味著確保某事是正確的。" },
         { q: "______ effectively with a diverse range of people.", a: "Communicate", opts: ["Communicate", "Talk", "Say", "Speak"], reason_en: "'Communicate' covers speaking, listening, and understanding.", reason_zh: "「Communicate」涵蓋了說話、聆聽和理解。" },
         { q: "______ on social policy and community research.", a: "Focusing", opts: ["Focusing", "Looking", "Pointing", "Seeing"], reason_en: "'Focusing on' means to give attention to a specific area.", reason_zh: "「Focusing on」意味著專注於特定領域。" },
-        { q: "Seeking a position to ______ my skills and knowledge.", a: "Apply", opts: ["Apply", "Use", "Do", "Make"], reason_en: "'Apply' is the standard term for using skills in a job.", reason
+        { q: "Seeking a position to ______ my skills and knowledge.", a: "Apply", opts: ["Apply", "Use", "Do", "Make"], reason_en: "'Apply' is the standard term for using skills in a job.", reason_zh: "「Apply」是在工作中運用技能的標準術語。" },
+        { q: "Assisted in ______ the festival for the public.", a: "Setting up", opts: ["Setting up", "Putting up", "Doing up", "Making up"], reason_en: "'Setting up' is the phrasal verb for preparing an event space.", reason_zh: "「Setting up」是準備活動場地的片語動詞。" }
+    ];
+
+    // --- STATE ---
+    let state = {
+        g1: { moves: 0, completed: false, score: 0 },
+        g2: { queue: [], currentIdx: 0, score: 0 },
+        g3: { queue: [], currentIdx: 0, score: 0 }
+    };
+
+    // --- UTILS ---
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function showGame(gameId) {
+        // Hide all
+        document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        
+        // Show specific
+        document.getElementById(gameId).classList.add('active');
+        
+        // Update nav button
+        if(gameId === 'game1') document.getElementById('btn-tab-1').classList.add('active');
+        if(gameId === 'game2') document.getElementById('btn-tab-2').classList.add('active');
+        if(gameId === 'game3') document.getElementById('btn-tab-3').classList.add('active');
+    }
+
+    // --- GAME 1: ORDER ---
+    let dragStartIndex;
+    
+    function initGame1() {
+        const list = document.getElementById('sortable-list');
+        list.innerHTML = '';
+        const shuffled = shuffle([...resumeStructure]);
+        
+        shuffled.forEach((item, index) => {
+            const li = document.createElement('li');
+            li.setAttribute('data-index', index);
+            li.setAttribute('draggable', 'true');
+            li.classList.add('sortable-item');
+            li.innerHTML = `<span>:: ${item.text}</span>`;
+            list.appendChild(li);
+            
+            li.addEventListener('dragstart', function() { dragStartIndex = +this.getAttribute('data-index'); });
+            li.addEventListener('dragover', e => e.preventDefault());
+            li.addEventListener('drop', function() {
+                const dragEndIndex = +this.getAttribute('data-index');
+                swapItems(dragStartIndex, dragEndIndex);
+                state.g1.moves++;
+                document.getElementById('moves').innerText = state.g1.moves;
+            });
+            li.addEventListener('dragenter', function() { this.classList.add('over'); });
+            li.addEventListener('dragleave', function() { this.classList.remove('over'); });
+        });
+    }
+
+    function swapItems(fromIndex, toIndex) {
+        const items = document.querySelectorAll('.sortable-item');
+        const itemOne = items[fromIndex].querySelector('span');
+        const itemTwo = items[toIndex].querySelector('span');
+        const temp = itemOne.innerText;
+        itemOne.innerText = itemTwo.innerText;
+        itemTwo.innerText = temp;
+    }
+
+    function checkOrder() {
+        const current = [];
+        document.querySelectorAll('.sortable-item span').forEach(s => current.push(s.innerText.replace(':: ', '')));
+        const correct = resumeStructure.map(s => s.text);
+        
+        const fb = document.getElementById('feedback1');
+        const fbTitle = document.getElementById('fb1-title');
+        const fbText = document.getElementById('fb1-text');
+        
+        fb.style.display = 'block';
+
+        if (JSON.stringify(current) === JSON.stringify(correct)) {
+            fb.className = "feedback correct";
+            fbTitle.innerText = "Correct! / 答對了！";
+            fbText.innerText = "You have the perfect resume structure. / 你已經掌握了完美的履歷結構。";
+            state.g1.completed = true;
+            state.g1.score = 100;
+            document.getElementById('btn-next-2').style.display = 'block';
+        } else {
+            fb.className = "feedback incorrect";
+            fbTitle.innerText = "Try Again / 再試一次";
+            fbText.innerText = "Order is not quite right. Contact first, References last. / 次序不太正確。聯絡資料在最前，諮詢人在最後。";
+        }
+    }
+
+    // --- GAME 2: CATEGORIES ---
+    function initGame2() {
+        // Shuffle the full 20 items, but slice only the first 7 for this session
+        state.g2.queue = shuffle([...rawSnippets]).slice(0, TOTAL_TEST_ITEMS);
+        state.g2.currentIdx = 0;
+        state.g2.score = 0;
+        loadG2Item();
+    }
+
+    function loadG2Item() {
+        if (state.g2.currentIdx >= TOTAL_TEST_ITEMS) {
+            endGame2();
+            return;
+        }
+        
+        const item = state.g2.queue[state.g2.currentIdx];
+        document.getElementById('snippet-display').innerText = `"${item.text}"`;
+        document.getElementById('q-counter-2').innerText = state.g2.currentIdx + 1;
+        document.getElementById('feedback2').style.display = 'none';
+        document.querySelector('#game2 .next-q-btn').style.display = 'none';
+        
+        // Update bar
+        const pct = ((state.g2.currentIdx) / TOTAL_TEST_ITEMS) * 100;
+        document.getElementById('progress-2').style.width = pct + "%";
+        
+        // Enable buttons
+        document.querySelectorAll('#game2 .cat-btn').forEach(b => {
+            b.disabled = false;
+            b.style.opacity = "1";
+        });
+    }
+
+    function handleCategoryInput(selection) {
+        const item = state.g2.queue[state.g2.currentIdx];
+        const fb = document.getElementById('feedback2');
+        const fbTitle = document.getElementById('fb2-title');
+        const fbContent = document.getElementById('fb2-content');
+        
+        // Disable buttons
+        document.querySelectorAll('#game2 .cat-btn').forEach(b => {
+            b.disabled = true;
+            b.style.opacity = "0.6";
+        });
+
+        fb.style.display = 'block';
+        document.querySelector('#game2 .next-q-btn').style.display = 'inline-block';
+
+        if (selection === item.category || (item.category === 'Skills' && selection === 'Skills')) {
+            fb.className = "feedback correct";
+            fbTitle.innerText = "Correct! / 答對了！";
+            fbContent.innerHTML = `<p>${item.reason_en}</p><span class="zh">${item.reason_zh}</span>`;
+            state.g2.score++;
+        } else {
+            fb.className = "feedback incorrect";
+            fbTitle.innerText = "Wrong / 答錯了";
+            fbContent.innerHTML = `
+                <p>Correct Category: <b>${item.category}</b></p>
+                <p>${item.reason_en}</p>
+                <span class="zh">${item.reason_zh}</span>`;
+        }
+    }
+
+    function nextQuestionG2() {
+        state.g2.currentIdx++;
+        loadG2Item();
+    }
+
+    function endGame2() {
+        document.getElementById('snippet-display').innerHTML = "<b>Section Complete!</b>";
+        document.getElementById('progress-2').style.width = "100%";
+        document.querySelector('#cat-btns-container').style.display = 'none';
+        document.getElementById('feedback2').style.display = 'none';
+        
+        const nextBtn = document.createElement('button');
+        nextBtn.className = 'btn-action';
+        nextBtn.style.background = 'var(--accent)';
+        nextBtn.innerText = "Proceed to Game 3";
+        nextBtn.onclick = () => showGame('game3');
+        document.getElementById('game2').appendChild(nextBtn);
+    }
+
+    // --- GAME 3: VOCAB ---
+    function initGame3() {
+        // Shuffle full 20, take 7
+        state.g3.queue = shuffle([...rawVocab]).slice(0, TOTAL_TEST_ITEMS);
+        state.g3.currentIdx = 0;
+        state.g3.score = 0;
+        loadG3Item();
+    }
+
+    function loadG3Item() {
+        if (state.g3.currentIdx >= TOTAL_TEST_ITEMS) {
+            endGame3();
+            return;
+        }
+
+        const item = state.g3.queue[state.g3.currentIdx];
+        document.getElementById('vocab-display').innerText = item.q;
+        document.getElementById('q-counter-3').innerText = state.g3.currentIdx + 1;
+        document.getElementById('feedback3').style.display = 'none';
+        document.querySelector('#game3 .next-q-btn').style.display = 'none';
+        
+        const pct = ((state.g3.currentIdx) / TOTAL_TEST_ITEMS) * 100;
+        document.getElementById('progress-3').style.width = pct + "%";
+
+        // Shuffle options
+        const opts = shuffle([...item.opts]);
+        const optContainer = document.getElementById('vocab-options');
+        optContainer.innerHTML = '';
+        
+        opts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'cat-btn';
+            btn.innerText = opt;
+            btn.onclick = () => handleVocabInput(opt, item);
+            optContainer.appendChild(btn);
+        });
+    }
+
+    function handleVocabInput(selected, item) {
+        const fb = document.getElementById('feedback3');
+        const fbTitle = document.getElementById('fb3-title');
+        const fbContent = document.getElementById('fb3-content');
+        
+        // Disable buttons
+        document.querySelectorAll('#vocab-options button').forEach(b => {
+            b.disabled = true;
+            b.style.opacity = "0.6";
+        });
+
+        fb.style.display = 'block';
+        document.querySelector('#game3 .next-q-btn').style.display = 'inline-block';
+
+        if (selected === item.a) {
+            fb.className = "feedback correct";
+            fbTitle.innerText = "Correct! / 答對了！";
+            fbContent.innerHTML = `<p>${item.reason_en}</p><span class="zh">${item.reason_zh}</span>`;
+            state.g3.score++;
+        } else {
+            fb.className = "feedback incorrect";
+            fbTitle.innerText = "Wrong / 答錯了";
+            fbContent.innerHTML = `
+                <p>Better Answer: <b>${item.a}</b></p>
+                <p>${item.reason_en}</p>
+                <span class="zh">${item.reason_zh}</span>`;
+        }
+    }
+
+    function nextQuestionG3() {
+        state.g3.currentIdx++;
+        loadG3Item();
+    }
+
+    function endGame3() {
+        showResults();
+    }
+
+    // --- RESULTS ---
+    function showResults() {
+        document.querySelectorAll('.game-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('results-section').classList.add('active');
+
+        // G1 Score
+        const g1Text = state.g1.completed ? "Pass" : "Incomplete";
+        document.getElementById('score-g1').innerText = g1Text;
+        document.getElementById('score-g1').style.color = state.g1.completed ? "green" : "red";
+
+        // G2 Score
+        document.getElementById('score-g2').innerText = `${state.g2.score} / ${TOTAL_TEST_ITEMS}`;
+
+        // G3 Score
+        document.getElementById('score-g3').innerText = `${state.g3.score} / ${TOTAL_TEST_ITEMS}`;
+
+        // Total Calc
+        // Logic: G1 (10%) + G2 (45%) + G3 (45%)
+        let total = 0;
+        if(state.g1.completed) total += 10;
+        total += (state.g2.score / TOTAL_TEST_ITEMS) * 45;
+        total += (state.g3.score / TOTAL_TEST_ITEMS) * 45;
+        
+        document.getElementById('total-score-display').innerText = Math.round(total) + "%";
+    }
+
+    // --- INIT ---
+    initGame1();
+    initGame2();
+    initGame3();
+
+</script>
+
+</body>
+</html>
