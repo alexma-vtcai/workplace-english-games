@@ -3,90 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocational English AI Coach</title>
+    <title>Vocational English AI Coach (Debug Mode)</title>
     <style>
-        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #1a73e8; text-align: center; margin-bottom: 30px; }
-        .scenario-card { background: #ffffff; border: 2px solid #e1e4e8; border-left: 8px solid #34a853; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
-        .scenario-title { font-weight: bold; color: #202124; font-size: 1.2em; margin-bottom: 10px; display: block; }
-        textarea { width: 100%; height: 200px; padding: 15px; border: 2px solid #dfe1e5; border-radius: 12px; font-size: 16px; box-sizing: border-box; resize: vertical; }
-        textarea:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 8px rgba(26,115,232,0.2); }
-        button { background: #1a73e8; color: white; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 600; width: 100%; margin-top: 20px; transition: all 0.3s; }
-        button:hover { background: #1557b0; transform: translateY(-1px); }
-        button:disabled { background: #bdc1c6; cursor: not-allowed; }
-        #loading { display: none; text-align: center; margin: 20px 0; color: #1a73e8; font-weight: bold; }
-        #result { margin-top: 30px; padding: 25px; border-radius: 12px; background: #f8f9fa; border: 1px solid #dee2e6; display: none; line-height: 1.8; }
-        .score-badge { display: inline-block; padding: 5px 15px; background: #fbbc05; color: #fff; border-radius: 20px; font-weight: bold; margin-bottom: 10px; }
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f4f6f8; color: #333; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        
+        /* 設定區域 */
+        .settings-box { background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffeeba; }
+        select { padding: 8px; border-radius: 5px; border: 1px solid #ccc; width: 100%; margin-top: 5px; }
+        
+        .scenario-card { background: #e3f2fd; border-left: 5px solid #2196f3; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 150px; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        
+        button { border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
+        .btn-submit { background: #28a745; color: white; }
+        .btn-submit:hover { background: #218838; }
+        .btn-check { background: #17a2b8; color: white; margin-bottom: 10px; }
+        
+        #status-msg { margin-top: 10px; font-weight: bold; color: #d9534f; text-align: center; }
+        #result { margin-top: 20px; padding: 20px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; display: none; white-space: pre-wrap; line-height: 1.6; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>職涯英語 AI 導師</h1>
+    <h1>職涯英語 AI 導師 (修復版)</h1>
 
-    <div class="scenario-card">
-        <span class="scenario-title">📌 任務情境：Global Education Consultancy</span>
-        <p><strong>背景：</strong> 客戶 SunnyB 抱怨沒收到 10% 折扣，且不知如何聯絡員工。</p>
-        <p><strong>要求：</strong> 請寫一封 50-100 字的英文電郵，向他解釋折扣規則並提供聯絡資料。</p>
+    <div class="settings-box">
+        <strong>⚙️ 設定 (Settings)</strong><br>
+        <label>選擇 AI 模型 (如果報錯，請換一個試試)：</label>
+        <select id="modelSelect">
+            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash Latest (推薦)</option>
+            <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+            <option value="gemini-1.5-flash-001">Gemini 1.5 Flash-001</option>
+            <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+            <option value="gemini-pro">Gemini Pro (舊版但穩定)</option>
+        </select>
+        
+        <button class="btn-check" onclick="checkAvailableModels()">🔍 檢查我的 Key 支援什麼模型</button>
+        <div id="model-list" style="font-size: 12px; color: #555; margin-top: 5px;"></div>
     </div>
 
-    <textarea id="studentResponse" placeholder="請在此輸入你的英文回覆..."></textarea>
+    <div class="scenario-card">
+        <strong>📌 任務：回覆客戶投訴 (Customer Complaint)</strong>
+        <p>情境：客戶 SunnyB 投訴沒收到 10% 折扣。請解釋折扣只適用於 15 人以上團體 (Mon-Sat 9am-6pm)。</p>
+    </div>
+
+    <textarea id="studentResponse" placeholder="Type your response here..."></textarea>
     
-    <button id="submitBtn" onclick="analyzeResponse()">提交 AI 批改</button>
-    
-    <div id="loading">🚀 AI 正在閱讀你的回覆，請稍候...</div>
+    <button class="btn-submit" id="submitBtn" onclick="analyzeResponse()">提交 AI 批改</button>
+    <div id="status-msg"></div>
     <div id="result"></div>
 </div>
 
 <script>
-    // 直接在此處填入你的 API Key
+    // ⚠️ 請再次確認這裡填入正確的 API Key
     const CONFIG_API_KEY = "AIzaSyD7yMHF2TFf8LC2ykY5h2-Ra1sW5hl1Ef8"; 
 
+    // 1. 診斷功能：列出所有可用模型
+    async function checkAvailableModels() {
+        const listDiv = document.getElementById('model-list');
+        listDiv.innerHTML = "正在向 Google 查詢可用模型...";
+        
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${CONFIG_API_KEY}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                listDiv.innerHTML = `<span style="color:red">錯誤：${data.error.message}</span>`;
+            } else {
+                // 過濾出 'generateContent' 支援的模型
+                const models = data.models
+                    .filter(m => m.supportedGenerationMethods.includes("generateContent"))
+                    .map(m => m.name.replace("models/", ""))
+                    .join(", ");
+                
+                listDiv.innerHTML = `✅ 你的 Key 支援這些模型：<br><strong>${models}</strong><br>(請在上方選單選擇其中一個)`;
+            }
+        } catch (e) {
+            listDiv.innerHTML = `<span style="color:red">連線失敗，請檢查網域限制或網路。</span>`;
+        }
+    }
+
+    // 2. 主功能：批改
     async function analyzeResponse() {
         const text = document.getElementById('studentResponse').value;
+        const model = document.getElementById('modelSelect').value;
         const btn = document.getElementById('submitBtn');
-        const loading = document.getElementById('loading');
+        const status = document.getElementById('status-msg');
         const resultDiv = document.getElementById('result');
 
+        if (text.length < 5) {
+            alert("請輸入內容！");
+            return;
+        }
+
         btn.disabled = true;
-        loading.style.display = "block";
+        status.innerText = `正在使用 ${model} 模型分析中...`;
         resultDiv.style.display = "none";
 
-        // 確保這裡填寫正確
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG_API_KEY}`;
+        // 動態組合 URL
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${CONFIG_API_KEY}`;
+
+        const prompt = `
+            You are a Vocational English teacher. Analyze this student email:
+            """${text}"""
+            
+            Please provide feedback in Traditional Chinese and English:
+            1. Score (0-100)
+            2. Grammar & Vocabulary checks
+            3. Tone & Professionalism
+            4. Consistency check (Discount is for 15+ pax only; Office hours Mon-Sat 9am-6pm).
+        `;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: "Hello, please reply with 'System Ready'." }] }]
+                    contents: [{ parts: [{ text: prompt }] }]
                 })
             });
 
             const data = await response.json();
-            
+
             if (data.error) {
-                // 這行會直接顯示 Google 回傳的具體錯誤原因
-                resultDiv.innerHTML = `<span style='color:red;'>API 錯誤：${data.error.message} (代碼: ${data.error.status})</span>`;
-                resultDiv.style.display = "block";
+                status.innerText = `❌ API 錯誤 (${model}): ${data.error.message}`;
+                if (data.error.message.includes("not found")) {
+                    alert("這個模型名稱無效，請在上方選單換一個試試！(推薦試試 Gemini Pro)");
+                }
             } else {
-                // 如果測試成功，才進行真正的批改（這裡可以放回原本的 prompt 邏輯）
-                resultDiv.innerHTML = "API 連接成功！正在處理教學指令...";
+                status.innerText = "";
+                let feedback = data.candidates[0].content.parts[0].text;
+                // 格式化輸出
+                feedback = feedback.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#d35400;">$1</strong>');
+                feedback = feedback.replace(/\n/g, '<br>');
+                
+                resultDiv.innerHTML = feedback;
                 resultDiv.style.display = "block";
-                // ... 執行原本的 prompt 邏輯 ...
             }
         } catch (error) {
-            resultDiv.innerHTML = `<span style='color:red;'>連線失敗：${error.message}</span>`;
-            resultDiv.style.display = "block";
+            status.innerText = "連線發生錯誤 (可能是網絡或 Key 限制)";
+            console.error(error);
         } finally {
             btn.disabled = false;
-            loading.style.display = "none";
         }
     }
 </script>
 
 </body>
-
 </html>
