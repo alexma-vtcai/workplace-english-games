@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocational English AI Coach</title>
+    <style>
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f0f4f8; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #1a73e8; text-align: center; margin-bottom: 30px; }
+        .scenario-card { background: #ffffff; border: 2px solid #e1e4e8; border-left: 8px solid #34a853; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+        .scenario-title { font-weight: bold; color: #202124; font-size: 1.2em; margin-bottom: 10px; display: block; }
+        textarea { width: 100%; height: 200px; padding: 15px; border: 2px solid #dfe1e5; border-radius: 12px; font-size: 16px; box-sizing: border-box; resize: vertical; }
+        textarea:focus { border-color: #1a73e8; outline: none; box-shadow: 0 0 8px rgba(26,115,232,0.2); }
+        button { background: #1a73e8; color: white; border: none; padding: 16px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: 600; width: 100%; margin-top: 20px; transition: all 0.3s; }
+        button:hover { background: #1557b0; transform: translateY(-1px); }
+        button:disabled { background: #bdc1c6; cursor: not-allowed; }
+        #loading { display: none; text-align: center; margin: 20px 0; color: #1a73e8; font-weight: bold; }
+        #result { margin-top: 30px; padding: 25px; border-radius: 12px; background: #f8f9fa; border: 1px solid #dee2e6; display: none; line-height: 1.8; }
+        .score-badge { display: inline-block; padding: 5px 15px; background: #fbbc05; color: #fff; border-radius: 20px; font-weight: bold; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>職涯英語 AI 導師</h1>
+
+    <div class="scenario-card">
+        <span class="scenario-title">📌 任務情境：Global Education Consultancy</span>
+        <p><strong>背景：</strong> 客戶 SunnyB 抱怨沒收到 10% 折扣，且不知如何聯絡員工。</p>
+        <p><strong>要求：</strong> 請寫一封 50-100 字的英文電郵，向他解釋折扣規則並提供聯絡資料。</p>
+    </div>
+
+    <textarea id="studentResponse" placeholder="請在此輸入你的英文回覆..."></textarea>
+    
+    <button id="submitBtn" onclick="analyzeResponse()">提交 AI 批改</button>
+    
+    <div id="loading">🚀 AI 正在閱讀你的回覆，請稍候...</div>
+    <div id="result"></div>
+</div>
+
+<script>
+    // 直接在此處填入你的 API Key
+    const CONFIG_API_KEY = "AIzaSyD7yMHF2TFf8LC2ykY5h2-Ra1sW5hl1Ef8"; 
+
+    async function analyzeResponse() {
+        const text = document.getElementById('studentResponse').value;
+        const btn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const resultDiv = document.getElementById('result');
+
+        if (!text || text.trim().length < 10) {
+            alert("請輸入更完整的回覆（至少 10 個字）。");
+            return;
+        }
+
+        btn.disabled = true;
+        loading.style.display = "block";
+        resultDiv.style.display = "none";
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG_API_KEY}`;
+
+        // 構建針對課程資料的訓練指令 (System Instruction)
+        const prompt = `
+            你是職涯英語專家。請分析這封學生寫的電郵：
+            """${text}"""
+
+            請嚴格按以下結構回覆（使用繁體中文和英文）：
+            1. [Score]: 給予 0-100 評分。
+            2. [Grammar & Vocab]: 指出錯誤並修正。
+            3. [Professionalism]: 評價語氣是否專業、禮貌。
+            4. [Consistency Check]: 檢查是否符合以下教材資料：
+               - 折扣必須是 15 人或以上團體才有。
+               - 聯絡時間是 Mon-Sat, 9am-6pm。
+            5. [Suggestion]: 給予一句鼓勵的話。
+        `;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates[0].content.parts[0].text) {
+                let feedback = data.candidates[0].content.parts[0].text;
+                // 簡單轉換 Markdown 格式為 HTML
+                feedback = feedback.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                feedback = feedback.replace(/\n/g, '<br>');
+                
+                resultDiv.innerHTML = feedback;
+                resultDiv.style.display = "block";
+            } else {
+                throw new Error("Invalid Response");
+            }
+        } catch (error) {
+            resultDiv.innerHTML = "<span style='color:red;'>系統繁忙或 API Key 無效，請稍後再試。</span>";
+            resultDiv.style.display = "block";
+            console.error(error);
+        } finally {
+            btn.disabled = false;
+            loading.style.display = "none";
+        }
+    }
+</script>
+
+</body>
+</html>
