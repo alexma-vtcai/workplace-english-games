@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocational English AI Simulator</title>
+    <title>Workplace English: Complaint Response Simulator</title>
     <style>
-        :root { --primary: #1a73e8; --secondary: #34a853; --bg: #f8f9fa; }
+        :root { --primary: #1a73e8; --secondary: #d93025; --bg: #f8f9fa; }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: #333; line-height: 1.6; padding: 20px; }
         .container { max-width: 900px; margin: auto; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
         h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
@@ -15,14 +15,14 @@
         label { font-weight: bold; display: block; margin-bottom: 8px; }
         select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background: white; }
 
-        .scenario-card { background: #fff4e5; border-left: 6px solid #ffa000; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
-        .scenario-card h3 { margin-top: 0; color: #af6000; }
+        .scenario-card { background: #fff4e5; border-left: 6px solid #d93025; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .scenario-card h3 { margin-top: 0; color: #b21f14; }
 
         textarea { width: 100%; height: 200px; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; resize: vertical; transition: 0.3s; }
         textarea:focus { border-color: var(--primary); outline: none; }
 
-        button { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.3s; }
-        button:hover { background: #2d8b46; transform: translateY(-2px); }
+        button { background: #1a73e8; color: white; border: none; padding: 18px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.3s; }
+        button:hover { background: #1557b0; transform: translateY(-2px); }
         button:disabled { background: #ccc; cursor: not-allowed; }
 
         #status { margin-top: 15px; text-align: center; font-weight: bold; color: var(--primary); }
@@ -33,30 +33,29 @@
 
 <div class="container">
     <h1>Vocational English AI Coach</h1>
-    <p class="subtitle">Select a scenario and practice your professional writing skills.</p>
+    <p class="subtitle">Practice responding to dissatisfied customers professionally.</p>
 
     <div class="selector-zone">
-        <label for="sceneSelect">Choose your workplace scenario:</label>
+        <label for="sceneSelect">Select a Complaint Scenario:</label>
         <select id="sceneSelect" onchange="updateScenario()">
-            <option value="global">Global Education Consultancy (Customer Enquiry)</option>
-            <option value="cosmo">Cosmo Bank (Handling Complaints)</option>
-            <option value="internal">Office Management (Internal Staff Briefing)</option>
+            <option value="global_discount">Global Education: Discount Dispute</option>
+            <option value="cosmo_wait">Cosmo Bank: Long Waiting Time</option>
+            <option value="cosmo_hygiene">Cosmo Bank: Staff Behavior Complaint</option>
         </select>
     </div>
 
     <div id="scenarioBox" class="scenario-card">
         </div>
 
-    <textarea id="userInput" placeholder="Type your professional response here..."></textarea>
+    <textarea id="userInput" placeholder="Write your professional reply here (50-100 words)..."></textarea>
     
-    <button id="submitBtn" onclick="processFeedback()">Analyze My Writing</button>
+    <button id="submitBtn" onclick="processFeedback()">Submit for AI Analysis</button>
     
     <div id="status"></div>
     <div id="result"></div>
 </div>
 
 <script>
-    // ⚠️ REPLACEMENT: Paste your AI Studio Key here
     const API_KEY = "AIzaSyAoQDlOjh6gxQvYN5pn81hQR0Vjq8qrnUE"; 
 
     const scenarios = {
@@ -84,10 +83,11 @@
         const scene = scenarios[document.getElementById('sceneSelect').value];
         document.getElementById('scenarioBox').innerHTML = `
             <h3>${scene.title}</h3>
-            <p><strong>Context:</strong> ${scene.context}</p>
-            <p><strong>Your Task:</strong> ${scene.task}</p>
+            <p><strong>Customer's Issue:</strong> ${scene.context}</p>
+            <p><strong>Instructions:</strong> ${scene.task}</p>
         `;
         document.getElementById('result').style.display = 'none';
+        document.getElementById('status').innerHTML = "";
         document.getElementById('userInput').value = '';
     }
 
@@ -99,39 +99,38 @@
         const resultDiv = document.getElementById('result');
         const btn = document.getElementById('submitBtn');
 
-        if (text.trim().length < 15) {
-            alert("Please write a more detailed response.");
+        if (text.trim().split(/\s+/).length < 30) {
+            alert("Your response is a bit short. Try to write at least 50 words to be professional.");
             return;
         }
 
         btn.disabled = true;
-        status.innerHTML = "🔍 AI is detecting the best model and analyzing your response...";
+        status.innerHTML = "🔄 AI is analyzing your response against workplace standards...";
 
         try {
-            // Auto-detect model as per previous success
             const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
             const listRes = await fetch(listUrl);
             const listData = await listRes.json();
-            const validModels = listData.models.filter(m => m.supportedGenerationMethods.includes("generateContent") && m.name.includes("gemini"));
-            const modelName = (validModels.find(m => m.name.includes("flash")) || validModels[0]).name;
+            const modelName = listData.models.find(m => m.name.includes("flash")).name;
 
             const prompt = `
-                Act as a professional Vocational English Teacher. 
-                Scenario: ${scene.title}. 
-                The student had to include these facts: ${scene.points}.
+                Act as an expert English for Professional Communication teacher. 
+                Task: Evaluate a student's online reply to a customer complaint.
                 
-                Analyze this student's writing: """${text}"""
+                Scenario Details: ${scene.title}
+                Student's Requirement: ${scene.mustInclude}
                 
-                Provide feedback in this EXACT format (Use Traditional Chinese & English):
-                1. [Overall Score]: 0-100
-                2. [Grammar & Vocab]: List mistakes and corrections.
-                3. [Tone]: Was the style appropriate for this workplace?
-                4. [Content Check]: Did they include the key facts (${scene.points})?
-                5. [Model Answer]: Show a perfect 1-paragraph example.
+                Student's Response: """${text}"""
+                
+                Please provide feedback in both Traditional Chinese and English:
+                1. [Score]: 0-100 (Based on tone, accuracy, and grammar).
+                2. [Professional Style & Tone]: Did they sound empathetic and professional?
+                3. [Consistency Check]: Did they include the specific facts requested (${scene.mustInclude})?
+                4. [Grammar & Vocabulary]: Correct any specific errors.
+                5. [Model Answer]: Provide a high-quality 60-80 word response.
             `;
 
-            const genUrl = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${API_KEY}`;
-            const genRes = await fetch(genUrl, {
+            const genRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${API_KEY}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
@@ -142,19 +141,17 @@
 
             resultDiv.innerHTML = feedback.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
             resultDiv.style.display = 'block';
-            status.innerHTML = "✅ Feedback Generated!";
+            status.innerHTML = "✅ Feedback Ready!";
 
         } catch (err) {
-            status.innerHTML = "❌ Error: " + err.message;
+            status.innerHTML = "❌ Error connecting to AI. Please check your API Key.";
         } finally {
             btn.disabled = false;
         }
     }
 
-    // Initialize the first scenario on load
     updateScenario();
 </script>
 
 </body>
 </html>
-
