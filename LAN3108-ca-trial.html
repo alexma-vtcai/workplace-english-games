@@ -49,58 +49,37 @@
         const loading = document.getElementById('loading');
         const resultDiv = document.getElementById('result');
 
-        if (!text || text.trim().length < 10) {
-            alert("請輸入更完整的回覆（至少 10 個字）。");
-            return;
-        }
-
         btn.disabled = true;
         loading.style.display = "block";
         resultDiv.style.display = "none";
 
+        // 確保這裡填寫正確
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${CONFIG_API_KEY}`;
-
-        // 構建針對課程資料的訓練指令 (System Instruction)
-        const prompt = `
-            你是職涯英語專家。請分析這封學生寫的電郵：
-            """${text}"""
-
-            請嚴格按以下結構回覆（使用繁體中文和英文）：
-            1. [Score]: 給予 0-100 評分。
-            2. [Grammar & Vocab]: 指出錯誤並修正。
-            3. [Professionalism]: 評價語氣是否專業、禮貌。
-            4. [Consistency Check]: 檢查是否符合以下教材資料：
-               - 折扣必須是 15 人或以上團體才有。
-               - 聯絡時間是 Mon-Sat, 9am-6pm。
-            5. [Suggestion]: 給予一句鼓勵的話。
-        `;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts: [{ text: "Hello, please reply with 'System Ready'." }] }]
                 })
             });
 
             const data = await response.json();
             
-            if (data.candidates && data.candidates[0].content.parts[0].text) {
-                let feedback = data.candidates[0].content.parts[0].text;
-                // 簡單轉換 Markdown 格式為 HTML
-                feedback = feedback.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-                feedback = feedback.replace(/\n/g, '<br>');
-                
-                resultDiv.innerHTML = feedback;
+            if (data.error) {
+                // 這行會直接顯示 Google 回傳的具體錯誤原因
+                resultDiv.innerHTML = `<span style='color:red;'>API 錯誤：${data.error.message} (代碼: ${data.error.status})</span>`;
                 resultDiv.style.display = "block";
             } else {
-                throw new Error("Invalid Response");
+                // 如果測試成功，才進行真正的批改（這裡可以放回原本的 prompt 邏輯）
+                resultDiv.innerHTML = "API 連接成功！正在處理教學指令...";
+                resultDiv.style.display = "block";
+                // ... 執行原本的 prompt 邏輯 ...
             }
         } catch (error) {
-            resultDiv.innerHTML = "<span style='color:red;'>系統繁忙或 API Key 無效，請稍後再試。</span>";
+            resultDiv.innerHTML = `<span style='color:red;'>連線失敗：${error.message}</span>`;
             resultDiv.style.display = "block";
-            console.error(error);
         } finally {
             btn.disabled = false;
             loading.style.display = "none";
@@ -109,4 +88,5 @@
 </script>
 
 </body>
+
 </html>
