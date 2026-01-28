@@ -1,143 +1,158 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vocational English AI Coach (Auto-Detect)</title>
+    <title>Vocational English AI Simulator</title>
     <style>
-        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f0f2f5; padding: 20px; }
-        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .status-box { background: #e8f0fe; color: #1a73e8; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; border: 1px solid #d2e3fc; }
-        h1 { color: #2c3e50; text-align: center; }
-        .scenario { background: #fff3cd; padding: 15px; border-left: 5px solid #ffc107; margin-bottom: 20px; }
-        textarea { width: 100%; height: 150px; padding: 10px; border: 2px solid #ccc; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-        button { background: #28a745; color: white; border: none; padding: 15px; border-radius: 8px; cursor: pointer; font-size: 18px; width: 100%; margin-top: 10px; }
-        button:hover { background: #218838; }
-        button:disabled { background: #bdc1c6; cursor: not-allowed; }
-        #result { margin-top: 20px; padding: 20px; background: #fafafa; border: 1px solid #eee; display: none; line-height: 1.6; white-space: pre-wrap; }
+        :root { --primary: #1a73e8; --secondary: #34a853; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: #333; line-height: 1.6; padding: 20px; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 35px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+        h1 { color: var(--primary); text-align: center; margin-bottom: 5px; }
+        p.subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+        
+        .selector-zone { background: #eef2f7; padding: 20px; border-radius: 10px; margin-bottom: 25px; border: 1px solid #d1d9e6; }
+        label { font-weight: bold; display: block; margin-bottom: 8px; }
+        select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; background: white; }
+
+        .scenario-card { background: #fff4e5; border-left: 6px solid #ffa000; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+        .scenario-card h3 { margin-top: 0; color: #af6000; }
+
+        textarea { width: 100%; height: 200px; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; resize: vertical; transition: 0.3s; }
+        textarea:focus { border-color: var(--primary); outline: none; }
+
+        button { background: var(--secondary); color: white; border: none; padding: 18px; border-radius: 12px; cursor: pointer; font-size: 18px; font-weight: bold; width: 100%; margin-top: 15px; transition: 0.3s; }
+        button:hover { background: #2d8b46; transform: translateY(-2px); }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+
+        #status { margin-top: 15px; text-align: center; font-weight: bold; color: var(--primary); }
+        #result { margin-top: 30px; padding: 25px; border-radius: 12px; background: #fff; border: 1px solid #eee; display: none; box-shadow: inset 0 2px 10px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>職涯英語 AI 導師</h1>
+    <h1>Vocational English AI Coach</h1>
+    <p class="subtitle">Select a scenario and practice your professional writing skills.</p>
 
-    <div id="status" class="status-box">
-        💡 準備就緒。點擊下方按鈕後，系統會自動尋找可用的 AI 模型。
+    <div class="selector-zone">
+        <label for="sceneSelect">Choose your workplace scenario:</label>
+        <select id="sceneSelect" onchange="updateScenario()">
+            <option value="global">Global Education Consultancy (Customer Enquiry)</option>
+            <option value="cosmo">Cosmo Bank (Handling Complaints)</option>
+            <option value="internal">Office Management (Internal Staff Briefing)</option>
+        </select>
     </div>
 
-    <div class="scenario">
-        <strong>任務：回覆投訴 (Global Education Consultancy)</strong>
-        <p>情境：客戶 SunnyB 投訴沒收到 10% 折扣。請解釋折扣只適用於 15 人以上團體，並提供辦公時間 (Mon-Sat 9am-6pm)。</p>
-    </div>
+    <div id="scenarioBox" class="scenario-card">
+        </div>
 
-    <textarea id="studentResponse" placeholder="Type your response here..."></textarea>
+    <textarea id="userInput" placeholder="Type your professional response here..."></textarea>
     
-    <button id="submitBtn" onclick="startProcess()">提交批改 (Auto-Connect)</button>
+    <button id="submitBtn" onclick="processFeedback()">Analyze My Writing</button>
     
+    <div id="status"></div>
     <div id="result"></div>
 </div>
 
 <script>
-    // ⚠️ 請填入你的 AI Studio API Key (AIza 開頭)
+    // ⚠️ REPLACEMENT: Paste your AI Studio Key here
     const API_KEY = "AIzaSyAoQDlOjh6gxQvYN5pn81hQR0Vjq8qrnUE"; 
 
-    // 主流程
-    async function startProcess() {
-        const text = document.getElementById('studentResponse').value;
-        const statusDiv = document.getElementById('status');
-        const btn = document.getElementById('submitBtn');
-        const resultDiv = document.getElementById('result');
+    const scenarios = {
+        global: {
+            title: "Global Education Consultancy",
+            context: "A customer (SunnyB) is complaining because they didn't receive a 10% discount for a London tour. They also don't know the office hours.",
+            task: "Write an email (50-100 words). Explain that the 10% discount is for groups of 15+ students only. Provide office hours: Mon-Sat, 9am-6pm.",
+            points: "15+ group discount, Mon-Sat 9-6 hours."
+        },
+        cosmo: {
+            title: "Cosmo Bank Personal Banking",
+            context: "Customers are complaining about long waiting times (up to 35 mins) at the branch. Manager Marco Lam wants you to suggest a solution.",
+            task: "Write a response to the manager. Suggest hiring part-time staff for peak hours to reduce the waiting time and improve service speed.",
+            points: "Apology for wait time, suggestion of part-time staff, peak hour assistance."
+        },
+        internal: {
+            title: "Internal Staff Communication",
+            context: " Frontline staff were found to be unaware of hygiene standards. An urgent briefing is needed.",
+            task: "Draft a notice to all staff. Arrange a briefing for Nov 8 (Friday) at 10:30 a.m. Remind them of hygiene standards and mention a PowerPoint attachment.",
+            points: "Nov 8, 10:30 am, hygiene standards, PPT reference."
+        }
+    };
 
-        if (!text) { alert("請輸入內容！"); return; }
-        
+    function updateScenario() {
+        const scene = scenarios[document.getElementById('sceneSelect').value];
+        document.getElementById('scenarioBox').innerHTML = `
+            <h3>${scene.title}</h3>
+            <p><strong>Context:</strong> ${scene.context}</p>
+            <p><strong>Your Task:</strong> ${scene.task}</p>
+        `;
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('userInput').value = '';
+    }
+
+    async function processFeedback() {
+        const text = document.getElementById('userInput').value;
+        const sceneKey = document.getElementById('sceneSelect').value;
+        const scene = scenarios[sceneKey];
+        const status = document.getElementById('status');
+        const resultDiv = document.getElementById('result');
+        const btn = document.getElementById('submitBtn');
+
+        if (text.trim().length < 15) {
+            alert("Please write a more detailed response.");
+            return;
+        }
+
         btn.disabled = true;
-        resultDiv.style.display = 'none';
-        statusDiv.innerHTML = "🔄 第一步：正在偵測可用的模型名稱...";
+        status.innerHTML = "🔍 AI is detecting the best model and analyzing your response...";
 
         try {
-            // 1. 先問 API 有什麼模型可用
-            const modelName = await findValidModel();
-            
-            if (!modelName) {
-                throw new Error("找不到支援 generateContent 的模型。");
-            }
+            // Auto-detect model as per previous success
+            const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
+            const listRes = await fetch(listUrl);
+            const listData = await listRes.json();
+            const validModels = listData.models.filter(m => m.supportedGenerationMethods.includes("generateContent") && m.name.includes("gemini"));
+            const modelName = (validModels.find(m => m.name.includes("flash")) || validModels[0]).name;
 
-            statusDiv.innerHTML = `✅ 成功鎖定模型：<strong>${modelName}</strong><br>🔄 第二步：正在傳送學生作業進行分析...`;
+            const prompt = `
+                Act as a professional Vocational English Teacher. 
+                Scenario: ${scene.title}. 
+                The student had to include these facts: ${scene.points}.
+                
+                Analyze this student's writing: """${text}"""
+                
+                Provide feedback in this EXACT format (Use Traditional Chinese & English):
+                1. [Overall Score]: 0-100
+                2. [Grammar & Vocab]: List mistakes and corrections.
+                3. [Tone]: Was the style appropriate for this workplace?
+                4. [Content Check]: Did they include the key facts (${scene.points})?
+                5. [Model Answer]: Show a perfect 1-paragraph example.
+            `;
 
-            // 2. 使用找到的模型名稱進行批改
-            await generateFeedback(modelName, text);
+            const genUrl = `https://generativelanguage.googleapis.com/v1beta/${modelName}:generateContent?key=${API_KEY}`;
+            const genRes = await fetch(genUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
 
-        } catch (error) {
-            statusDiv.innerHTML = `❌ 錯誤：${error.message}`;
-            console.error(error);
+            const genData = await genRes.json();
+            const feedback = genData.candidates[0].content.parts[0].text;
+
+            resultDiv.innerHTML = feedback.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            resultDiv.style.display = 'block';
+            status.innerHTML = "✅ Feedback Generated!";
+
+        } catch (err) {
+            status.innerHTML = "❌ Error: " + err.message;
         } finally {
             btn.disabled = false;
         }
     }
 
-    // 輔助函式 1：尋找可用模型
-    async function findValidModel() {
-        const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`;
-        const response = await fetch(listUrl);
-        const data = await response.json();
-
-        if (data.error) {
-            throw new Error(`列出模型失敗 (${data.error.message})`);
-        }
-
-        // 過濾邏輯：找一個支援 'generateContent' 且名稱包含 'gemini' 的模型
-        // 優先尋找 'flash' 版本，因為它最快且通常免費額度最高
-        const validModels = data.models.filter(m => 
-            m.supportedGenerationMethods.includes("generateContent") && 
-            m.name.includes("gemini")
-        );
-
-        // 優先排序：Flash > Pro > 1.5 > 1.0
-        const bestModel = validModels.find(m => m.name.includes("flash")) || validModels[0];
-
-        if (bestModel) {
-            // API 回傳的名稱通常是 'models/gemini-1.5-flash'，我們直接用它
-            return bestModel.name.replace("models/", ""); 
-        }
-        return null;
-    }
-
-    // 輔助函式 2：生成回饋
-    async function generateFeedback(modelName, studentText) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
-        
-        const prompt = `
-            You are a strict Vocational English teacher. Analyze this email:
-            """${studentText}"""
-            
-            Provide feedback in Traditional Chinese & English.
-            Include: 
-            1. Score (0-100)
-            2. Check specific details: 15 students for discount? Mon-Sat 9am-6pm?
-            3. Grammar & Tone check.
-        `;
-
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        const data = await response.json();
-        
-        if (data.error) throw new Error(data.error.message);
-
-        const feedback = data.candidates[0].content.parts[0].text;
-        
-        const resultDiv = document.getElementById('result');
-        resultDiv.innerHTML = feedback.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-        resultDiv.style.display = 'block';
-        
-        document.getElementById('status').innerHTML = "✨ 批改完成！";
-    }
+    // Initialize the first scenario on load
+    updateScenario();
 </script>
 
 </body>
