@@ -60,23 +60,23 @@
     const API_KEY = "AIzaSyAoQDlOjh6gxQvYN5pn81hQR0Vjq8qrnUE"; 
 
     const scenarios = {
-        global: {
-            title: "Global Education Consultancy",
-            context: "A customer (SunnyB) is complaining because they didn't receive a 10% discount for a London tour. They also don't know the office hours.",
-            task: "Write an email (50-100 words). Explain that the 10% discount is for groups of 15+ students only. Provide office hours: Mon-Sat, 9am-6pm.",
-            points: "15+ group discount, Mon-Sat 9-6 hours."
+        global_discount: {
+            title: "Global Education Consultancy - Discount Issue",
+            context: "Customer SunnyB is angry because s/he was charged the full price for the Sydney study tour, claiming they were promised a 10% group discount.",
+            task: "Reply to SunnyB. Apologize for the confusion. Explain that according to the leaflet, a 10% discount only applies to group enrolments of 15 students or more. Offer to help if they have further questions.",
+            mustInclude: "Apology, 15+ group requirement for 10% discount, offer further assistance."
         },
-        cosmo: {
-            title: "Cosmo Bank Personal Banking",
-            context: "Customers are complaining about long waiting times (up to 35 mins) at the branch. Manager Marco Lam wants you to suggest a solution.",
-            task: "Write a response to the manager. Suggest hiring part-time staff for peak hours to reduce the waiting time and improve service speed.",
-            points: "Apology for wait time, suggestion of part-time staff, peak hour assistance."
+        cosmo_wait: {
+            title: "Cosmo Bank - Waiting Time Complaint",
+            context: "A customer posted a complaint online stating they waited for 35 minutes at the branch last Monday because only two counters were open.",
+            task: "Reply to the customer. Apologize for the delay. Explain that we are currently experiencing staff shortages and are in the process of hiring part-time staff to assist during peak hours. Thank them for their patience.",
+            mustInclude: "Apology for 35-min wait, mention hiring part-time staff, express gratitude for patience."
         },
-        internal: {
-            title: "Internal Staff Communication",
-            context: " Frontline staff were found to be unaware of hygiene standards. An urgent briefing is needed.",
-            task: "Draft a notice to all staff. Arrange a briefing for Nov 8 (Friday) at 10:30 a.m. Remind them of hygiene standards and mention a PowerPoint attachment.",
-            points: "Nov 8, 10:30 am, hygiene standards, PPT reference."
+        cosmo_hygiene: {
+            title: "Cosmo Bank - Staff Hygiene Complaint",
+            context: "A customer complained that a teller was seen eating at the counter and was rude when asked for help.",
+            task: "Reply to the customer. Express sincere regret. Inform them that an urgent briefing for frontline staff has been scheduled for Nov 8 to reinforce hygiene and service standards. Promise better service in the future.",
+            mustInclude: "Sincere regret/apology, mention Nov 8 staff briefing, promise improvement."
         }
     };
 
@@ -157,3 +157,4 @@
 
 </body>
 </html>
+
