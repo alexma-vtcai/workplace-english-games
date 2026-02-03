@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocational English - Prepositions Quiz</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; background-color: #f4f4f9; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; }
+        .student-info { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #eee; }
+        .student-info label { font-weight: bold; display: block; margin-bottom: 5px; }
+        .student-info input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box;}
+        
+        .question { margin-bottom: 20px; }
+        .question p { font-weight: bold; margin-bottom: 10px; }
+        .options label { display: block; margin-bottom: 8px; cursor: pointer; }
+        .options input { margin-right: 10px; }
+        
+        button { background-color: #28a745; color: white; border: none; padding: 12px 20px; width: 100%; font-size: 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        #result { margin-top: 20px; padding: 15px; text-align: center; border-radius: 5px; display: none; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>English Prepositions Quiz</h2>
+    
+    <div class="student-info">
+        <label for="studentName">Student Name (English Full Name):</label>
+        <input type="text" id="studentName" placeholder="e.g. Chan Tai Man">
+    </div>
+
+    <form id="quizForm">
+        <div class="question" data-answer="at">
+            <p>1. The class starts _____ 9:00 AM.</p>
+            <div class="options">
+                <label><input type="radio" name="q1" value="on"> on</label>
+                <label><input type="radio" name="q1" value="in"> in</label>
+                <label><input type="radio" name="q1" value="at"> at</label>
+            </div>
+        </div>
+
+        <div class="question" data-answer="on">
+            <p>2. Please put your laptop _____ the desk.</p>
+            <div class="options">
+                <label><input type="radio" name="q2" value="at"> at</label>
+                <label><input type="radio" name="q2" value="on"> on</label>
+                <label><input type="radio" name="q2" value="in"> in</label>
+            </div>
+        </div>
+
+        <div class="question" data-answer="by">
+            <p>3. Most students come to school _____ MTR.</p>
+            <div class="options">
+                <label><input type="radio" name="q3" value="with"> with</label>
+                <label><input type="radio" name="q3" value="by"> by</label>
+                <label><input type="radio" name="q3" value="in"> in</label>
+            </div>
+        </div>
+
+        <div class="question" data-answer="in">
+            <p>4. The final exam is _____ December.</p>
+            <div class="options">
+                <label><input type="radio" name="q4" value="on"> on</label>
+                <label><input type="radio" name="q4" value="in"> in</label>
+                <label><input type="radio" name="q4" value="at"> at</label>
+            </div>
+        </div>
+
+        <div class="question" data-answer="for">
+            <p>5. This tool is responsible _____ cutting metal.</p>
+            <div class="options">
+                <label><input type="radio" name="q5" value="to"> to</label>
+                <label><input type="radio" name="q5" value="with"> with</label>
+                <label><input type="radio" name="q5" value="for"> for</label>
+            </div>
+        </div>
+
+        <button type="button" onclick="submitQuiz()" id="submitBtn">Submit Answers</button>
+    </form>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    // ============================================
+    // 設定：請將下面這行換成你的 Google Web App URL
+    // ============================================
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyhMuFI5lLtg08BWUpwJVMkmYFjT02EhQWqWpW8oBBtFGbKEcx1hv5n0U_aiAnrKS58EQ/exec'; 
+
+    function submitQuiz() {
+        const name = document.getElementById('studentName').value.trim();
+        if (!name) {
+            alert("Please enter your name first!");
+            return;
+        }
+
+        let score = 0;
+        const total = 5;
+        const questions = document.querySelectorAll('.question');
+        let allAnswered = true;
+
+        // 計算分數
+        questions.forEach((q, index) => {
+            const selected = q.querySelector('input[type="radio"]:checked');
+            if (!selected) {
+                allAnswered = false;
+            } else if (selected.value === q.dataset.answer) {
+                score++;
+            }
+        });
+
+        if (!allAnswered) {
+            alert("Please answer all questions.");
+            return;
+        }
+
+        // 鎖定按鈕，避免重複提交
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.innerText = "Submitting...";
+
+        // 準備傳送的數據
+        const payload = {
+            name: name,
+            score: score + " / " + total
+        };
+
+        // 使用 fetch API 傳送數據去 Google Sheet
+        fetch(SCRIPT_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        })
+        .then(response => {
+            // 顯示結果
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'success';
+            resultDiv.innerHTML = `<strong>Success!</strong><br>Thank you ${name}. Your score: ${score}/${total} has been recorded.`;
+            
+            // 顯示正確答案 (Optional)
+            alert(`Submission Complete!\nYour Score: ${score}/${total}`);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'error';
+            resultDiv.innerText = "Error submitting data. Please try again or contact Alex.";
+            btn.disabled = false;
+            btn.innerText = "Submit Answers";
+        });
+    }
+</script>
+
+</body>
+</html>
